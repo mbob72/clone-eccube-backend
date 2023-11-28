@@ -13,6 +13,8 @@ declare global {
       DB_DIALECT: string;
       DB_HOST: string;
       DB_PORT: string;
+
+      FALLBACK_LANGUAGE: string;
     }
   }
 }
