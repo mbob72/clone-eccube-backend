@@ -9,6 +9,8 @@ import {
 } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import config from './config/configuration';
+import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -35,6 +37,27 @@ import config from './config/configuration';
         autoLoadEntities: true, // entities: ['dist/**/*.entity.js'],
         synchronize: true, // TODO: shouldn't be used in production - otherwise you can lose production data.
       }),
+    }),
+
+    // internalization
+    // https://nestjs-i18n.com/quick-start
+    I18nModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        fallbackLanguage: configService.getOrThrow('FALLBACK_LANGUAGE'),
+        loaderOptions: {
+          path: path.join(__dirname, '/i18n/'),
+          watch: true,
+        },
+        typesOutputPath: path.join(
+          __dirname,
+          '../src/generated/i18n.generated.ts',
+        ),
+      }),
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        AcceptLanguageResolver,
+      ],
+      inject: [ConfigService],
     }),
   ],
   controllers: [AppController],
