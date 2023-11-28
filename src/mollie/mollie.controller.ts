@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { MollieService } from './mollie.service';
 import { CreateMollieDto } from './dto/create-mollie.dto';
 import { UpdateMollieDto } from './dto/update-mollie.dto';

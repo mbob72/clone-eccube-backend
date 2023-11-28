@@ -14,8 +14,12 @@ import * as path from 'path';
 
 @Module({
   imports: [
+    // APP MODULES
+
     AuthModule,
     MollieModule,
+
+    // SYSTEM MODULES
 
     // .env || https://docs.nestjs.com/techniques/configuration
     ConfigModule.forRoot({

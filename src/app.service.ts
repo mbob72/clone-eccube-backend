@@ -9,6 +9,6 @@ export class AppService {
   _lang = I18nContext?.current()?.lang ?? 'en';
 
   getHello(): string {
-    return this.i18n.t('test.HELLO', { lang: this._lang });
+    return this.i18n.t('map.HELLO', { lang: 'ge' });
   }
 }
