@@ -9,10 +9,11 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LocalAuthGuard } from './guards/localAuth.guard';
 import { CookiesService } from './lib/cookies.service';
 import { UserId } from './decorators/userId.decorator';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
+import { Public } from './decorators/public.decorator';
 
 @Controller('/auth')
 export class AuthController {
@@ -21,6 +22,7 @@ export class AuthController {
     private readonly cookiesService: CookiesService,
   ) {}
 
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Post('/register')
   async registerUser(
@@ -31,9 +33,10 @@ export class AuthController {
     await this.authService.registerUser(createUserDto);
   }
 
-  @Post('/login')
-  @UseGuards(LocalAuthGuard)
+  @Public()
   @HttpCode(HttpStatus.OK)
+  @UseGuards(LocalAuthGuard)
+  @Post('/login')
   async loginUser(
     @UserId() userId: string,
     @Res({ passthrough: true }) res: Response,
