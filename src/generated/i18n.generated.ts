@@ -2,10 +2,7 @@
 
 import { Path } from "nestjs-i18n";
 export type I18nTranslations = {
-    "events": {
-        "HELLO": string;
-    };
-    "test": {
+    "map": {
         "HELLO": string;
         "PRODUCT": {
             "NEW": string;

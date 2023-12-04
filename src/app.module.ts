@@ -10,12 +10,12 @@ import {
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import config from './config/configuration';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import { UsersModule } from './users/users.module';
 import * as path from 'path';
 
 @Module({
   imports: [
-    AuthModule,
-    MollieModule,
+    // SYSTEM MODULES
 
     // .env || https://docs.nestjs.com/techniques/configuration
     ConfigModule.forRoot({
@@ -25,6 +25,9 @@ import * as path from 'path';
 
     // Just free playground database
     // ElephantSQL: https://api.elephantsql.com/console/9ca44960-3a70-432b-a47d-5de3c46000d7/details
+    // ----------------------------------------
+    // use DBeaver to connect to database
+    // instructions: https://technology.amis.nl/database/quick-start-with-free-managed-postgresql-database-on-elephantsql/
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -34,7 +37,9 @@ import * as path from 'path';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        autoLoadEntities: true, // entities: ['dist/**/*.entity.js'],
+        autoLoadEntities: true,
+        // entities: ['dist/**/*.entity.js'],
+        // entities: [User],
         synchronize: true, // TODO: shouldn't be used in production - otherwise you can lose production data.
       }),
     }),
@@ -59,6 +64,12 @@ import * as path from 'path';
       ],
       inject: [ConfigService],
     }),
+
+    // APP MODULES
+
+    AuthModule,
+    MollieModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
