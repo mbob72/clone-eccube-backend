@@ -17,7 +17,7 @@ export class User {
   static createViaDto(createDto: CreateUserDto): User {
     const user = plainToClass(User, createDto);
     user.id = uuidv4();
-    // TODO: normalize data before saving
+    // TODO: sanitize data before saving
     user.setEmail(createDto.email);
     user.firstName = createDto.firstName;
     user.lastName = createDto.lastName;

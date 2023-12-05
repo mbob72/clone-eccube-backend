@@ -15,11 +15,10 @@ export class TokenService {
       aud: JwtConstants.issuer,
       iss: JwtConstants.issuer,
       iat: nowTimestamp,
-      exp: nowTimestamp + JwtConstants.credentialsLifetime,
       guest: options.guest,
-      user_id: userId,
+      userId,
     };
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload, { expiresIn: '7d' });
   }
 
   createResetPasswordToken(

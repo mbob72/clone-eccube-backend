@@ -1,32 +1,56 @@
 import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
-import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './lib/local.strategy';
 import { CryptService } from './lib/crypt.service';
-import { JwtModule } from '@nestjs/jwt';
 import { JwtConstants } from './lib/constants';
 import { TokenService } from './lib/token.service';
 import { CookiesService } from './lib/cookies.service';
 import { AuthController } from './auth.controller';
+import { JwtStrategy } from './lib/jwt.strategy';
+import { JwtAuthGuard } from './guards/jwtAuth.guard';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
-    JwtModule.register({
-      secret: JwtConstants.secret,
-      signOptions: { expiresIn: '1h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory(configService: ConfigService) {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error('JWT secret is not defined');
+        }
+        return {
+          // global: true,
+          secret,
+          signOptions: {
+            expiresIn: '7d',
+            // algorithm: 'HS512',
+          },
+        };
+      },
     }),
   ],
   providers: [
     AuthService,
     {
+      inject: [ConfigService],
       provide: CookiesService,
-      useFactory(): CookiesService {
+      useFactory(configService: ConfigService): CookiesService {
+        const cookieName = configService.get<string>('COOKIE_NAME');
+        const cookieDomain = configService.get<string>('COOKIE_DOMAIN');
+        if (!cookieName) {
+          throw new Error('COOKIE_NAME is not defined');
+        }
         return new CookiesService({
-          cookieName: process.env.COOKIE_NAME || 'token',
-          cookieDomain: process.env.COOKIE_DOMAIN,
+          cookieName,
+          cookieDomain,
           cookieLifetime: JwtConstants.credentialsLifetime,
           allowSameSiteNone: !!process.env.ALLOW_NO_SAME_SITE,
         });
@@ -35,6 +59,13 @@ import { AuthController } from './auth.controller';
     CryptService,
     TokenService,
     LocalStrategy,
+    JwtStrategy,
+
+    // set global guard for module
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
   exports: [
     AuthService,
@@ -42,6 +73,7 @@ import { AuthController } from './auth.controller';
     CryptService,
     TokenService,
     LocalStrategy,
+    JwtStrategy,
   ],
   controllers: [AuthController],
 })
