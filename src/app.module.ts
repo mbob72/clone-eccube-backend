@@ -32,11 +32,11 @@ import * as path from 'path';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        type: 'postgres', // configService.get('DB_DIALECT') as TypeOrmModuleOptions['type'],
-        url: configService.get('DB_HOST'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_NAME'),
+        type: 'postgres', // configService.get<string>('DB_DIALECT') as TypeOrmModuleOptions['type'],
+        url: configService.get<string>('DB_HOST'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         // entities: ['dist/**/*.entity.js'],
         // entities: [User],
@@ -47,6 +47,8 @@ import * as path from 'path';
     // internalization
     // https://nestjs-i18n.com/quick-start
     I18nModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         fallbackLanguage: configService.getOrThrow('FALLBACK_LANGUAGE'),
         loaderOptions: {
@@ -62,7 +64,6 @@ import * as path from 'path';
         { use: QueryResolver, options: ['lang'] },
         AcceptLanguageResolver,
       ],
-      inject: [ConfigService],
     }),
 
     // APP MODULES

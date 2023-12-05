@@ -16,7 +16,11 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<Nullable<User>> {
     const user = await this.usersService.findByEmail(email);
-    if (user?.password === pass) {
+    if (!user) {
+      return null;
+    }
+    const isValid = await this.isPasswordValid(email, pass);
+    if (isValid) {
       return user;
     }
     return null;
@@ -31,18 +35,6 @@ export class AuthService {
     //   throw new AccessForbiddenError('You cannot login right now.');
     // }
     return this.tokenService.createToken(user.id);
-  }
-
-  async isPasswordValid(email: string, plainPass: string): Promise<boolean> {
-    if (plainPass.length > 48) {
-      return false;
-    }
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      return false;
-    }
-    const hashedPassword = user.password;
-    return this.cryptService.verify(plainPass, hashedPassword);
   }
 
   async registerUser(createDto: CreateUserDto): Promise<User> {
@@ -70,5 +62,20 @@ export class AuthService {
   async updatePassword(userId: string, plainPassword: string): Promise<void> {
     const hashedPassword = await this.cryptService.generateHash(plainPassword);
     await this.usersService.updatePassword(userId, hashedPassword);
+  }
+
+  private async isPasswordValid(
+    email: string,
+    plainPass: string,
+  ): Promise<boolean> {
+    if (plainPass.length > 48) {
+      return false;
+    }
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      return false;
+    }
+    const hashedPassword = user.password;
+    return this.cryptService.verify(plainPass, hashedPassword);
   }
 }
