@@ -2,9 +2,5 @@
 # logout user
 
 POST http://localhost:3000/auth/logout HTTP/1.1
-
 Content-Type: application/json
-
-Set-Cookie: eccubeToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTY4NjY2NjU5LCJleH;
-
-{}
+Cookie: eccubeToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJlY2N1YmUiLCJpc3MiOiJlY2N1YmUiLCJpYXQiOjE3MDE3ODY4MTEsImd1ZXN0IjpmYWxzZSwidXNlcklkIjoiYWJjZjk4ZGYtMjZkNi00OGRhLWE2YTMtZWFhMGRhMTVmZGU0IiwiZXhwIjoxNzAyMzkxNjExfQ.N5m7egMGlG0oWt0i_ZNZ1nTcJpkm4Kwf-5myOKDn8Ks

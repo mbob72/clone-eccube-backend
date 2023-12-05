@@ -8,8 +8,9 @@ import {
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { JwtService } from '@nestjs/jwt';
-import { extractTokenFromCookies } from '../lib/utils';
+import { extractJwtTokenFromRequest } from '../lib/utils';
 import { ConfigService } from '@nestjs/config';
+import { IJwtPayload } from '../types/jwt';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -30,16 +31,17 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const token = extractTokenFromCookies(request);
+    const token = extractJwtTokenFromRequest(request);
     if (!token) {
       throw new UnauthorizedException();
     }
 
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
-      const payload = await this.jwtService.verifyAsync(token, { secret });
-      // Assigning the payload to the request object here
-      // so that we can access it in our route handlers
+      const payload = await this.jwtService.verifyAsync<IJwtPayload>(token, {
+        secret,
+      });
+      // set the payload to the request object for access in route handlers
       request['user'] = payload;
     } catch {
       throw new UnauthorizedException();
