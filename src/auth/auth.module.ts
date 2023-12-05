@@ -9,6 +9,9 @@ import { JwtConstants } from './lib/constants';
 import { TokenService } from './lib/token.service';
 import { CookiesService } from './lib/cookies.service';
 import { AuthController } from './auth.controller';
+import { JwtStrategy } from './lib/jwt.strategy';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './guards/jwtAuth.guard';
 
 @Module({
   imports: [
@@ -35,6 +38,12 @@ import { AuthController } from './auth.controller';
     CryptService,
     TokenService,
     LocalStrategy,
+    JwtStrategy,
+    // set global guard for module
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
   exports: [
     AuthService,
