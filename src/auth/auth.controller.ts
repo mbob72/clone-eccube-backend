@@ -38,7 +38,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async loginUser(
-    @UserId() userId: string,
+    @UserId() userId: string, // extract userId from LocalStrategy `validate` method
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ token: string }> {
     // const userRestriction =

@@ -4,6 +4,8 @@ export default () => ({
 
   fallbackLanguage: process.env.FALLBACK_LANGUAGE || 'en',
 
+  salt: process.env.SALT || 10,
+
   jwtSecret: process.env.JWT_SECRET || 'secret',
 
   cookieName: process.env.COOKIE_NAME || 'token',
