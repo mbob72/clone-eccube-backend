@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/createUser.dto';
+import { CreateUserDto, UpdateUserDto } from './dto/createUser.dto';
 import { UsersRepository } from './users.repository';
 import { Nullable } from 'src/types/utils';
 
@@ -28,7 +28,33 @@ export class UsersService {
     user.type = createDto.type;
     // user.activate();
     user.isVerified = !!createDto.isVerified;
-    // user.restriction = this.getInitialVendorRestriction();
+    // user.restriction = this.getInitialRestriction();
+    const savedUser = await this.usersRepository.save(user);
+    return savedUser;
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    if (updateUserDto.email && updateUserDto.email !== user.email) {
+      user.setEmail(updateUserDto.email);
+      user.isVerified = false;
+      // await this.confirmationService.sendConfirmationMail(user.id, originUrl);
+    }
+    if (updateUserDto.firstName) {
+      user.firstName = updateUserDto.firstName;
+    }
+    if (updateUserDto.lastName) {
+      user.lastName = updateUserDto.lastName;
+    }
+    if (updateUserDto.isVerified) {
+      user.isVerified = updateUserDto.isVerified;
+    }
+    if (updateUserDto.mollieAccessToken) {
+      user.mollieAccessToken = updateUserDto.mollieAccessToken;
+    }
     const savedUser = await this.usersRepository.save(user);
     return savedUser;
   }
