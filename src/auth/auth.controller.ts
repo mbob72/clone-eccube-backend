@@ -15,7 +15,7 @@ import { UserId } from './decorators/userId.decorator';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
 import { Public } from './decorators/public.decorator';
 
-@Controller('/auth')
+@Controller('/v1/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

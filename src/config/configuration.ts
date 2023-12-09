@@ -15,7 +15,9 @@ export default () => ({
   mollie: {
     clientId: process.env.MOLLIE_CLIENT_ID || 'clientId',
     clientSecret: process.env.MOLLIE_CLIENT_SECRET || 'secret',
-    url: process.env.MOLLIE_URL || 'url',
+    secretState: process.env.MOLLIE_SECRET_STATE || '3(#0/!~',
+    authHost: process.env.MOLLIE_AUTH_HOST || 'https://my.mollie.com',
+    tokenHost: process.env.MOLLIE_TOKEN_HOST || 'https://api.mollie.com',
   },
   // DB
   database: {

@@ -6,12 +6,24 @@ import { AuthorizationCode } from 'simple-oauth2';
 import { MollieService } from './mollie.service';
 import { Public } from 'src/auth/decorators/public.decorator';
 
-@Controller('/mollie')
+export interface ITokenRes {
+  token: {
+    access_token: string;
+    expires_in: number; // 3600
+    token_type: string; // bearer
+    scope: string;
+    refresh_token: string;
+    expires_at: string;
+  };
+}
+
+// !important - root path
+@Controller('/')
 export class MollieController {
   constructor(
     private readonly mollieService: MollieService,
-    private readonly configService: ConfigService,
     private readonly httpClient: HttpService,
+    private readonly configService: ConfigService,
   ) {}
 
   private readonly callbackUrl = 'https://bidding.eccube.de';
@@ -22,9 +34,10 @@ export class MollieController {
       secret: this.configService.get('mollie.clientSecret')!,
     },
     auth: {
-      tokenHost: this.configService.get('mollie.url')!,
-      tokenPath: '/oauth2/tokens',
+      authorizeHost: this.configService.get('mollie.authHost')!,
       authorizePath: '/oauth2/authorize',
+      tokenHost: this.configService.get('mollie.tokenHost')!,
+      tokenPath: '/oauth2/tokens',
     },
   };
   private readonly client = new AuthorizationCode(this.config);
@@ -35,56 +48,36 @@ export class MollieController {
     const authorizationUri = this.client.authorizeURL({
       redirect_uri: this.callbackUrl,
       scope: ['payments.write', 'refunds.write'],
-      state: '3(#0/!~', // crypto random
+      state: '3(#0/!~', // TODO: crypto random -> MOLLIE_SECRET_STATE
     });
     res.redirect(authorizationUri);
-
-    // from GitHub docs
-
-    // const tokenParams = {
-    //   code: '<code>',
-    //   redirect_uri: 'http://localhost:3000/callback',
-    //   scope: '<scope>',
-    // };
-    // try {
-    //   const accessToken = await client.getToken(tokenParams);
-    // } catch (error) {
-    //   console.log('Access Token Error', error.message);
-    // }
   }
 
   // Callback service parsing the authorization token and asking for the access token
   @Public()
   @Get('/')
-  callback(@Req() req: Request, @Res() res: Response) {
+  async callback(@Req() req: Request, @Res() res: Response) {
     const { code } = req.query;
-    const { tokenHost, tokenPath } = this.config.auth;
-    this.httpClient
-      .post(
-        `${tokenHost}${tokenPath}`,
-        // token params
-        {
-          code,
-          redirect_uri: this.callbackUrl,
-          grant_type: 'authorization_code',
-        },
-        {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          auth: {
-            username: this.configService.get('mollie.clientId')!,
-            password: this.configService.get('mollie.clientSecret')!,
-          },
-        },
-      )
-      .subscribe((response) => {
-        console.log('have response::', response);
-      });
+    const tokenParams = {
+      code: code as string,
+      redirect_uri: this.callbackUrl,
+      grant_type: 'authorization_code',
+    };
+    try {
+      const data = (await this.client.getToken(
+        tokenParams,
+      )) as unknown as ITokenRes;
+      console.log('accessToken::', data.token.access_token);
+      // TODO: save token to DB
+    } catch (error) {
+      console.log('Access Token Error::', error.message);
+    }
     return res.status(200).json(code);
   }
 
   @Public()
   @Get('/login')
   login(@Req() req: Request, @Res() res: Response) {
-    res.send('Hello<br><a href="/mollie/auth">Log in with Mollie</a>');
+    res.send('Hello<br><a href="/auth">Log in with Mollie</a>');
   }
 }
