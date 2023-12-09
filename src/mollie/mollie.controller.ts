@@ -27,7 +27,6 @@ export class MollieController {
       authorizePath: '/oauth2/authorize',
     },
   };
-
   private readonly client = new AuthorizationCode(this.config);
 
   @Public()
@@ -36,7 +35,7 @@ export class MollieController {
     const authorizationUri = this.client.authorizeURL({
       redirect_uri: this.callbackUrl,
       scope: ['payments.write', 'refunds.write'],
-      state: '3(#0/!~',
+      state: '3(#0/!~', // crypto random
     });
     res.redirect(authorizationUri);
 
@@ -59,9 +58,11 @@ export class MollieController {
   @Get('/')
   callback(@Req() req: Request, @Res() res: Response) {
     const { code } = req.query;
+    const { tokenHost, tokenPath } = this.config.auth;
     this.httpClient
       .post(
-        'https://api.mollie.com/oauth2/tokens',
+        `${tokenHost}${tokenPath}`,
+        // token params
         {
           code,
           redirect_uri: this.callbackUrl,
@@ -84,6 +85,6 @@ export class MollieController {
   @Public()
   @Get('/login')
   login(@Req() req: Request, @Res() res: Response) {
-    res.send('Hello<br><a href="/auth">Log in with Mollie</a>');
+    res.send('Hello<br><a href="/mollie/auth">Log in with Mollie</a>');
   }
 }
