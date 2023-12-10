@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { plainToClass } from 'class-transformer';
+import { Exclude, plainToClass } from 'class-transformer';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -27,6 +27,8 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   public id: string;
 
+  // skip when create from plain object
+  @Exclude({ toClassOnly: true })
   @Column()
   public email: string;
 
@@ -44,6 +46,9 @@ export class User {
 
   @Column({ default: false })
   public isVerified: boolean;
+
+  @Column({ default: null })
+  public mollieAccessToken: string;
 
   @Column()
   public type: UserType;

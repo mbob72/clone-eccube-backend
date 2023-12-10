@@ -1,10 +1,10 @@
 import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
-import { Controller, Get, Req, Res } from '@nestjs/common';
+import { Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthorizationCode } from 'simple-oauth2';
 import { MollieService } from './mollie.service';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { UserId } from 'src/auth/decorators/userId.decorator';
 
 export interface ITokenRes {
   token: {
@@ -18,11 +18,11 @@ export interface ITokenRes {
 }
 
 // !important - root path
+// TODO: remove @Public() decorator next time
 @Controller('/')
 export class MollieController {
   constructor(
     private readonly mollieService: MollieService,
-    private readonly httpClient: HttpService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -68,7 +68,7 @@ export class MollieController {
         tokenParams,
       )) as unknown as ITokenRes;
       console.log('accessToken::', data.token.access_token);
-      // TODO: save token to DB
+      // TODO: save token to DB - next time
     } catch (error) {
       console.log('Access Token Error::', error.message);
     }
@@ -79,5 +79,16 @@ export class MollieController {
   @Get('/login')
   login(@Req() req: Request, @Res() res: Response) {
     res.send('Hello<br><a href="/auth">Log in with Mollie</a>');
+  }
+
+  @Post('/mollie/token')
+  async saveToken(
+    @UserId() userId: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const { token } = req.body;
+    await this.mollieService.saveAccessToken(token, userId);
+    return res.status(200).json({ message: 'Token saved' });
   }
 }
