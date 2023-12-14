@@ -59,6 +59,17 @@ export class AuthService {
     return user;
   }
 
+  async activateUser(userId: string): Promise<User> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return this.usersService.update(userId, {
+      isActive: true,
+      isVerified: true,
+    });
+  }
+
   async updatePassword(userId: string, plainPassword: string): Promise<void> {
     const hashedPassword = await this.cryptService.generateHash(plainPassword);
     await this.usersService.updatePassword(userId, hashedPassword);

@@ -1,11 +1,4 @@
-import {
-  IsBoolean,
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { UserType } from '../users.type';
 
 export class CreateUserDto {
@@ -20,21 +13,13 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  readonly firstName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  readonly lastName: string;
-
-  @IsString()
-  @IsNotEmpty()
   readonly type: UserType;
 
-  @IsBoolean()
-  @IsOptional()
-  readonly isVerified?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // readonly isVerified?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  readonly isActive?: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // readonly isActive?: boolean;
 }
