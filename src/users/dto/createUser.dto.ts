@@ -38,29 +38,3 @@ export class CreateUserDto {
   @IsOptional()
   readonly isActive?: boolean;
 }
-
-export class UpdateUserDto {
-  @IsEmail()
-  @IsOptional()
-  readonly email?: string;
-
-  @IsString()
-  @IsOptional()
-  readonly firstName?: string;
-
-  @IsString()
-  @IsOptional()
-  readonly lastName?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  readonly isVerified?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  readonly isActive?: boolean;
-
-  @IsString()
-  @IsOptional()
-  readonly mollieAccessToken?: string;
-}
