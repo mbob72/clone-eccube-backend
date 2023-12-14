@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
-import { CreateUserDto, UpdateUserDto } from './dto/createUser.dto';
+import { CreateUserDto } from './dto/createUser.dto';
 import { UsersRepository } from './users.repository';
 import { Nullable } from 'src/types/utils';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -19,15 +20,11 @@ export class UsersService {
   async create(createDto: CreateUserDto): Promise<User> {
     let user = await this.usersRepository.findByEmail(createDto.email);
     if (user) {
-      user.firstName = createDto.firstName;
-      user.lastName = createDto.lastName;
       user.password = createDto.password;
     } else {
       user = User.createViaDto(createDto);
     }
     user.type = createDto.type;
-    // user.activate();
-    user.isVerified = !!createDto.isVerified;
     // user.restriction = this.getInitialRestriction();
     const savedUser = await this.usersRepository.save(user);
     return savedUser;
@@ -48,6 +45,9 @@ export class UsersService {
     }
     if (updateUserDto.lastName) {
       user.lastName = updateUserDto.lastName;
+    }
+    if (updateUserDto.isActive) {
+      user.isActive = updateUserDto.isActive;
     }
     if (updateUserDto.isVerified) {
       user.isVerified = updateUserDto.isVerified;

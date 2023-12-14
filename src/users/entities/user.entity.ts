@@ -17,10 +17,7 @@ export class User {
   static createViaDto(createDto: CreateUserDto): User {
     const user = plainToClass(User, createDto);
     user.id = uuidv4();
-    // TODO: sanitize data before saving
-    user.setEmail(createDto.email);
-    user.firstName = createDto.firstName;
-    user.lastName = createDto.lastName;
+    user.setEmail(createDto.email?.trim());
     return user;
   }
 
@@ -36,25 +33,41 @@ export class User {
   public password: string;
 
   @Column()
-  public firstName: string;
+  public type: UserType;
 
-  @Column()
-  public lastName: string;
-
+  // user is activate via email
   @Column({ default: false })
   isActive: boolean;
 
+  // user is verified via email
+  // also if user change email -> it should set `false`
+  // and send new confirm-email to verify again
   @Column({ default: false })
   public isVerified: boolean;
 
   @Column({ default: null })
   public mollieAccessToken: string;
 
-  @Column()
-  public type: UserType;
+  // next properties that should be set via onboarding
 
-  // @Column()
-  // public phoneNumber: string;
+  @Column({ default: '' })
+  public firstName: string;
+
+  @Column({ default: '' })
+  public lastName: string;
+
+  @Column({ default: null })
+  public phoneNumber: string;
+
+  // TODO: should be object (city, street, etc)
+  @Column({ default: null })
+  public address: string;
+
+  // TODO: should be object (name, iban, etc)
+  @Column({ default: null })
+  public company: string;
+
+  // auto-set properties
 
   @CreateDateColumn()
   public createdAt: Date;
@@ -62,8 +75,7 @@ export class User {
   @UpdateDateColumn()
   public updatedAt: Date;
 
-  // @Column()
-  // public registeredAt: Date;
+  // methods
 
   public getFullName(): string {
     return `${this.firstName} ${this.lastName}`;

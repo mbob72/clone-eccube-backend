@@ -14,6 +14,7 @@ import { CookiesService } from './lib/cookies.service';
 import { UserId } from './decorators/userId.decorator';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
 import { Public } from './decorators/public.decorator';
+import { User } from 'src/users/entities/user.entity';
 
 @Controller('/v1/auth')
 export class AuthController {
@@ -27,10 +28,19 @@ export class AuthController {
   @Post('/register')
   async registerUser(
     @Body() createUserDto: CreateUserDto,
-    // @Req() req: Request,
-  ): Promise<void> {
-    // const origin = req.header('Origin');
-    await this.authService.registerUser(createUserDto);
+  ): Promise<{ id: string }> {
+    const user = await this.authService.registerUser(createUserDto);
+    return { id: user.id };
+  }
+
+  // temporary solution
+  // TODO: should work via confirmation email
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('/activate')
+  async activateUser(@Body() payload: { id: string }): Promise<User> {
+    const user = await this.authService.activateUser(payload.id);
+    return user;
   }
 
   @Public()

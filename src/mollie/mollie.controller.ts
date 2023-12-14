@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { AuthorizationCode } from 'simple-oauth2';
+import { AuthorizationCode, ModuleOptions } from 'simple-oauth2';
 import { MollieService } from './mollie.service';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { UserId } from 'src/auth/decorators/userId.decorator';
@@ -21,26 +21,28 @@ export interface ITokenRes {
 // TODO: remove @Public() decorator next time
 @Controller('/')
 export class MollieController {
+  private readonly callbackUrl = 'https://bidding.eccube.de';
+  private config: ModuleOptions;
+  private client: AuthorizationCode;
+
   constructor(
     private readonly mollieService: MollieService,
     private readonly configService: ConfigService,
-  ) {}
-
-  private readonly callbackUrl = 'https://bidding.eccube.de';
-
-  private readonly config = {
-    client: {
-      id: this.configService.get('mollie.clientId')!,
-      secret: this.configService.get('mollie.clientSecret')!,
-    },
-    auth: {
-      authorizeHost: this.configService.get('mollie.authHost')!,
-      authorizePath: '/oauth2/authorize',
-      tokenHost: this.configService.get('mollie.tokenHost')!,
-      tokenPath: '/oauth2/tokens',
-    },
-  };
-  private readonly client = new AuthorizationCode(this.config);
+  ) {
+    this.config = {
+      client: {
+        id: this.configService.get('mollie.clientId')!,
+        secret: this.configService.get('mollie.clientSecret')!,
+      },
+      auth: {
+        authorizeHost: this.configService.get('mollie.authHost')!,
+        authorizePath: '/oauth2/authorize',
+        tokenHost: this.configService.get('mollie.tokenHost')!,
+        tokenPath: '/oauth2/tokens',
+      },
+    };
+    this.client = new AuthorizationCode(this.config);
+  }
 
   @Public()
   @Get('/auth')
