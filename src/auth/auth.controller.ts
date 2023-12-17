@@ -15,12 +15,14 @@ import { UserId } from './decorators/userId.decorator';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
 import { Public } from './decorators/public.decorator';
 import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('/v1/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly cookiesService: CookiesService,
+    private readonly userService: UsersService,
   ) {}
 
   @Public()
@@ -38,8 +40,8 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('/activate')
-  async activateUser(@Body() payload: { id: string }): Promise<User> {
-    const user = await this.authService.activateUser(payload.id);
+  async activateUser(@Body() payload: { token: string }): Promise<User> {
+    const user = await this.authService.activateUser(payload.token);
     return user;
   }
 
@@ -50,7 +52,11 @@ export class AuthController {
   async loginUser(
     @UserId() userId: string, // extract userId from LocalStrategy `validate` method
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ token: string }> {
+  ): Promise<User> {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
     // const userRestriction =
     //   await this.restrictionService.getUserRestriction(userId);
     // if (userRestriction === USER_RESTRICTION_LOGIN_BLOCK) {
@@ -58,7 +64,7 @@ export class AuthController {
     // }
     const token = await this.authService.getJwtToken(userId);
     this.cookiesService.writeTokenInCookies(res, token);
-    return { token };
+    return user;
   }
 
   @Post('/logout')
