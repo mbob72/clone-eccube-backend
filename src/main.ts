@@ -13,8 +13,8 @@ const httpsOptions = {
 };
 
 async function bootstrap() {
-  // const app = await NestFactory.create(AppModule);
-  const app = await NestFactory.create(AppModule, { httpsOptions });
+  const app = await NestFactory.create(AppModule);
+  // const app = await NestFactory.create(AppModule, { httpsOptions });
 
   // app.setGlobalPrefix('/v0');
 
