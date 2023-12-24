@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JwtConstants } from './constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
 
   createToken(
     userId: string,
@@ -18,7 +22,25 @@ export class TokenService {
       guest: options.guest,
       userId,
     };
-    return this.jwtService.sign(payload, { expiresIn: '7d' });
+    return this.jwtService.sign(payload, { expiresIn: '5h' });
+  }
+
+  createRefreshToken(
+    userId: string,
+    options: { guest: boolean } = { guest: false },
+  ): string {
+    const nowTimestamp = Math.floor(Date.now() / 1000);
+    const payload = {
+      aud: JwtConstants.issuer,
+      iss: JwtConstants.issuer,
+      iat: nowTimestamp,
+      guest: options.guest,
+      userId,
+    };
+    return this.jwtService.sign(payload, {
+      expiresIn: '7h',
+      secret: this.configService.get<string>('jwtRefreshSecret'),
+    });
   }
 
   createResetPasswordToken(

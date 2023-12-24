@@ -6,6 +6,7 @@ export default () => ({
   fallbackLanguage: process.env.FALLBACK_LANGUAGE || 'en',
   // auth
   jwtSecret: process.env.JWT_SECRET || 'secret',
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
   salt: process.env.SALT || 10,
   // cookie (auth)
   cookieName: process.env.COOKIE_NAME || 'token',
@@ -15,7 +16,6 @@ export default () => ({
   mollie: {
     clientId: process.env.MOLLIE_CLIENT_ID || 'clientId',
     clientSecret: process.env.MOLLIE_CLIENT_SECRET || 'secret',
-    secretState: process.env.MOLLIE_SECRET_STATE || '3(#0/!~',
     authHost: process.env.MOLLIE_AUTH_HOST || 'https://my.mollie.com',
     tokenHost: process.env.MOLLIE_TOKEN_HOST || 'https://api.mollie.com',
   },

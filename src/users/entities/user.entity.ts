@@ -17,7 +17,7 @@ import { CreateUserDto } from '../dto/createUser.dto';
 export type Address = {
   country: string; // Germany by default
   city: string;
-  line: string; // street + apartment - free text (next time: google maps autocomplete)
+  line: string; // street + apartment - free text (next time: google maps autocomplete input)
   additional: string; // additional info - optional free text
   zip: string;
 };

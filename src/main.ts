@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { json } from 'express';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const httpsOptions = {
@@ -13,10 +14,18 @@ const httpsOptions = {
 };
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  // const app = await NestFactory.create(AppModule, { httpsOptions });
+  // const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { httpsOptions });
 
-  // app.setGlobalPrefix('/v0');
+  // app.setGlobalPrefix('/v1');
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   app.enableCors(); // TODO: add CorsOptions next time
   app.use(cookieParser());

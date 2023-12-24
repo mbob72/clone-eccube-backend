@@ -15,18 +15,19 @@ import { UserId } from './decorators/userId.decorator';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
 import { Public } from './decorators/public.decorator';
 import { User } from 'src/users/entities/user.entity';
-import { UsersService } from 'src/users/users.service';
+import { JwtAuthGuard } from './guards/jwtAuth.guard';
+import { ILoginUserResponse } from './types';
+import { RefreshJwtGuard } from './guards/refreshAuth.guard';
 
 @Controller('/v1/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly cookiesService: CookiesService,
-    private readonly userService: UsersService,
   ) {}
 
   @Public()
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   @Post('/register')
   async registerUser(
     @Body() createUserDto: CreateUserDto,
@@ -45,28 +46,32 @@ export class AuthController {
     return user;
   }
 
-  @Public()
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async loginUser(
-    @UserId() userId: string, // extract userId from LocalStrategy `validate` method
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<User> {
-    const user = await this.userService.findById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    // const userRestriction =
-    //   await this.restrictionService.getUserRestriction(userId);
-    // if (userRestriction === USER_RESTRICTION_LOGIN_BLOCK) {
-    //   throw new ForbiddenException();
-    // }
-    const token = await this.authService.getJwtToken(userId);
-    this.cookiesService.writeTokenInCookies(res, token);
-    return user;
+    @Body() payload: { email: string; password: string },
+    @Res({ passthrough: true })
+    res: Response,
+  ): Promise<ILoginUserResponse> {
+    const { email } = payload;
+    const data = await this.authService.loginUser(email);
+    const accessToken = data.backendTokens.accessToken;
+    this.cookiesService.writeTokenInCookies(res, accessToken);
+    return data;
   }
 
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RefreshJwtGuard)
+  @Post('/refresh')
+  async refreshToken(
+    @UserId() userId: string, // extract userId from JwtStrategy `validate` method
+  ): Promise<ILoginUserResponse['backendTokens']> {
+    const data = await this.authService.refreshToken(userId);
+    return data;
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('/logout')
   async logoutUser(@Res({ passthrough: true }) res: Response): Promise<void> {
     this.cookiesService.removeTokenInCookies(res);

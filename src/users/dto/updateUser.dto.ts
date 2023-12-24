@@ -23,5 +23,17 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
+  readonly phoneNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly company?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly address?: string;
+
+  @IsString()
+  @IsOptional()
   readonly mollieAccessToken?: string;
 }

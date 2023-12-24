@@ -8,12 +8,12 @@ import {
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { JwtService } from '@nestjs/jwt';
-import { extractJwtTokenFromRequest } from '../lib/utils';
 import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
 import { IJwtPayload } from '../types/jwt';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class RefreshJwtGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
@@ -31,13 +31,13 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const token = extractJwtTokenFromRequest(request);
+    const token = this.extractJwtTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
     }
 
     try {
-      const secret = this.configService.get<string>('jwtSecret');
+      const secret = this.configService.get<string>('jwtRefreshSecret');
       const payload = await this.jwtService.verifyAsync<IJwtPayload>(token, {
         secret,
       });
@@ -47,5 +47,13 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     return true;
+  }
+
+  private extractJwtTokenFromHeader(req: Request) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return null;
+    const [type, token] = authHeader?.split(' ') || [];
+    if (type !== 'Refresh' || !token) return null;
+    return token;
   }
 }

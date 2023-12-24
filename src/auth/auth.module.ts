@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+// import { APP_GUARD } from '@nestjs/core';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { LocalStrategy } from './lib/local.strategy';
@@ -12,7 +12,7 @@ import { TokenService } from './lib/token.service';
 import { CookiesService } from './lib/cookies.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './lib/jwt.strategy';
-import { JwtAuthGuard } from './guards/jwtAuth.guard';
+// import { JwtAuthGuard } from './guards/jwtAuth.guard';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { JwtAuthGuard } from './guards/jwtAuth.guard';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory(configService: ConfigService) {
-        const secret = configService.get<string>('JWT_SECRET');
+        const secret = configService.get<string>('jwtSecret');
         if (!secret) {
           throw new Error('JWT secret is not defined');
         }
@@ -30,7 +30,7 @@ import { JwtAuthGuard } from './guards/jwtAuth.guard';
           // global: true,
           secret,
           signOptions: {
-            expiresIn: '7d',
+            expiresIn: '5h',
             // algorithm: 'HS512',
           },
         };
@@ -62,10 +62,10 @@ import { JwtAuthGuard } from './guards/jwtAuth.guard';
     JwtStrategy,
 
     // set global guard for module
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: JwtAuthGuard,
+    // },
   ],
   exports: [
     AuthService,
