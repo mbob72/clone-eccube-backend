@@ -46,6 +46,15 @@ export class UsersService {
     if (updateUserDto.lastName) {
       user.lastName = updateUserDto.lastName;
     }
+    if (updateUserDto.phoneNumber) {
+      user.phoneNumber = updateUserDto.phoneNumber;
+    }
+    if (updateUserDto.address) {
+      user.address = updateUserDto.address;
+    }
+    if (updateUserDto.company) {
+      user.company = updateUserDto.company;
+    }
     if (updateUserDto.isActive) {
       user.isActive = updateUserDto.isActive;
     }

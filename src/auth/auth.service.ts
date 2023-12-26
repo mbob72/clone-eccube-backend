@@ -5,13 +5,16 @@ import { Nullable } from 'src/types/utils';
 import { CryptService } from './lib/crypt.service';
 import { TokenService } from './lib/token.service';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
+import { ILoginUserResponse } from './types';
+
+const EXPIRE_TIME = 20 * 1000; // 20 seconds
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private cryptService: CryptService,
-    private tokenService: TokenService,
+    private readonly usersService: UsersService,
+    private readonly cryptService: CryptService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<Nullable<User>> {
@@ -57,6 +60,42 @@ export class AuthService {
     // this.eventEmitter.emit('user.new', user, origin);
     // TODO: send email
     return user;
+  }
+
+  async loginUser(email: string): Promise<ILoginUserResponse> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    // const userRestriction =
+    //   await this.restrictionService.getUserRestriction(userId);
+    // if (userRestriction === USER_RESTRICTION_LOGIN_BLOCK) {
+    //   throw new ForbiddenException();
+    // }
+    const userId = user.id;
+    const accessToken = await this.getJwtToken(userId);
+    const refreshToken = this.tokenService.createRefreshToken(userId);
+    // TODO: check this solution
+    // const refreshToken = await this.jwtService.sign(payload, {
+    //   expiresIn: '7h',
+    //   secret: process.env.JWT_REFRESH_SECRET,
+    // });
+    return {
+      user,
+      backendTokens: {
+        accessToken,
+        refreshToken,
+        expiresIn: new Date().setTime(new Date().getTime() + EXPIRE_TIME),
+      },
+    };
+  }
+
+  async refreshToken(
+    userId: string,
+  ): Promise<ILoginUserResponse['backendTokens']> {
+    const data = await this.loginUser(userId);
+    const { backendTokens } = data;
+    return backendTokens;
   }
 
   async activateUser(userId: string): Promise<User> {

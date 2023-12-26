@@ -1,10 +1,13 @@
 import { ConfigService } from '@nestjs/config';
-import { Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthorizationCode, ModuleOptions } from 'simple-oauth2';
 import { MollieService } from './mollie.service';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { UserId } from 'src/auth/decorators/userId.decorator';
+import { generateAuthorizeUrlState } from './lib';
+import { Nullable } from 'src/types/utils';
+import { JwtAuthGuard } from 'src/auth/guards/jwtAuth.guard';
 
 export interface ITokenRes {
   token: {
@@ -21,7 +24,7 @@ export interface ITokenRes {
 // TODO: remove @Public() decorator next time
 @Controller('/')
 export class MollieController {
-  private readonly callbackUrl = 'https://bidding.eccube.de';
+  private readonly callbackUrl = 'https://bidding.eccube.de/callback';
   private config: ModuleOptions;
   private client: AuthorizationCode;
 
@@ -44,22 +47,26 @@ export class MollieController {
     this.client = new AuthorizationCode(this.config);
   }
 
-  @Public()
+  // @Public()
+  @UseGuards(JwtAuthGuard)
   @Get('/auth')
   create(@Req() req: Request, @Res() res: Response) {
     const authorizationUri = this.client.authorizeURL({
       redirect_uri: this.callbackUrl,
       scope: ['payments.write', 'refunds.write'],
-      state: '3(#0/!~', // TODO: crypto random -> MOLLIE_SECRET_STATE
+      state: generateAuthorizeUrlState(), // '3(#0/!~',
     });
     res.redirect(authorizationUri);
+    // return res.status(200).json({ authorizationUri });
   }
 
   // Callback service parsing the authorization token and asking for the access token
-  @Public()
-  @Get('/')
+  // @Public()
+  @UseGuards(JwtAuthGuard)
+  @Get('/callback')
   async callback(@Req() req: Request, @Res() res: Response) {
     const { code } = req.query;
+    let access_token: Nullable<string> = null;
     const tokenParams = {
       code: code as string,
       redirect_uri: this.callbackUrl,
@@ -69,12 +76,13 @@ export class MollieController {
       const data = (await this.client.getToken(
         tokenParams,
       )) as unknown as ITokenRes;
-      console.log('accessToken::', data.token.access_token);
-      // TODO: save token to DB - next time
+      access_token = data.token.access_token;
+      console.log('accessToken::', access_token);
+      // await this.mollieService.saveAccessToken(token, userId);
     } catch (error) {
       console.log('Access Token Error::', error.message);
     }
-    return res.status(200).json(code);
+    return res.status(200).json({ access_token });
   }
 
   @Public()
@@ -83,6 +91,7 @@ export class MollieController {
     res.send('Hello<br><a href="/auth">Log in with Mollie</a>');
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/mollie/token')
   async saveToken(
     @UserId() userId: string,
