@@ -7,7 +7,7 @@ import { TokenService } from './lib/token.service';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
 import { ILoginUserResponse } from './types';
 
-const EXPIRE_TIME = 20 * 1000; // 20 seconds
+const EXPIRE_TIME = 20 * 60 * 1000; // 20 minutes
 
 @Injectable()
 export class AuthService {
@@ -93,7 +93,11 @@ export class AuthService {
   async refreshToken(
     userId: string,
   ): Promise<ILoginUserResponse['backendTokens']> {
-    const data = await this.loginUser(userId);
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const data = await this.loginUser(user.email);
     const { backendTokens } = data;
     return backendTokens;
   }
