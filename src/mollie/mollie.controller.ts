@@ -56,13 +56,13 @@ export class MollieController {
       scope: ['payments.write', 'refunds.write'],
       state: generateAuthorizeUrlState(), // '3(#0/!~',
     });
-    res.redirect(authorizationUri);
-    // return res.status(200).json({ authorizationUri });
+    // res.redirect(authorizationUri);
+    return res.status(200).json({ authorizationUri });
   }
 
   // Callback service parsing the authorization token and asking for the access token
-  // @Public()
-  @UseGuards(JwtAuthGuard)
+  @Public()
+  // @UseGuards(JwtAuthGuard)
   @Get('/callback')
   async callback(@Req() req: Request, @Res() res: Response) {
     const { code } = req.query;
