@@ -27,7 +27,12 @@ async function bootstrap() {
     }),
   );
 
-  app.enableCors(); // TODO: add CorsOptions next time
+  // TODO: fix CorsOptions next time
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
   app.use(cookieParser());
   app.use(json());
 
