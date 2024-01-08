@@ -90,6 +90,14 @@ export class AuthService {
     };
   }
 
+  async isLoggedInUser(userId: string): Promise<User> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  }
+
   async refreshToken(
     userId: string,
   ): Promise<ILoginUserResponse['backendTokens']> {
