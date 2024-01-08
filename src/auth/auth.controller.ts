@@ -6,8 +6,9 @@ import {
   Res,
   UseGuards,
   HttpCode,
+  Get,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/localAuth.guard';
 import { CookiesService } from './lib/cookies.service';
@@ -18,12 +19,15 @@ import { User } from 'src/users/entities/user.entity';
 import { JwtAuthGuard } from './guards/jwtAuth.guard';
 import { ILoginUserResponse } from './types';
 import { RefreshJwtGuard } from './guards/refreshAuth.guard';
+import Nullable from '@mollie/api-client/dist/types/src/types/Nullable';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('/v1/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly cookiesService: CookiesService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Public()
@@ -59,6 +63,25 @@ export class AuthController {
     const accessToken = data.backendTokens.accessToken;
     this.cookiesService.writeTokenInCookies(res, accessToken);
     return data;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/logged_in')
+  async isLoggedInUser(
+    @UserId() userId: string,
+    req: Request,
+    res: Response,
+  ): Promise<Nullable<User>> {
+    // const cookieName = this.configService.get<string>('COOKIE_NAME')!;
+    // console.log('cookieName', cookieName);
+    // const token = req.cookies[cookieName];
+    // console.log('token', token);
+    if (!userId) {
+      this.cookiesService.removeTokenInCookies(res);
+      return null;
+    }
+    const user = await this.authService.isLoggedInUser(userId);
+    return user;
   }
 
   @HttpCode(HttpStatus.OK)

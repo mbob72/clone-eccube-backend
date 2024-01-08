@@ -26,7 +26,7 @@ export class MollieService {
   }
 
   /**
-   * @deprecated
+   * @legacy
    * use `simple-oauth2` method `client.getToken(config)`
    */
   async getAccessToken(code: string, redirect_uri: string) {
