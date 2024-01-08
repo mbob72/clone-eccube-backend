@@ -22,7 +22,7 @@ export class TokenService {
       guest: options.guest,
       userId,
     };
-    return this.jwtService.sign(payload, { expiresIn: '20s' });
+    return this.jwtService.sign(payload, { expiresIn: '15m' });
   }
 
   createRefreshToken(
