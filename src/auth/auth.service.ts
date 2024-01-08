@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { User } from 'src/users/entities/user.entity';
 import { Nullable } from 'src/types/utils';
@@ -6,8 +6,6 @@ import { CryptService } from './lib/crypt.service';
 import { TokenService } from './lib/token.service';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
 import { ILoginUserResponse } from './types';
-
-const EXPIRE_TIME = 20 * 60 * 1000; // 20 minutes
 
 @Injectable()
 export class AuthService {
@@ -29,7 +27,11 @@ export class AuthService {
     return null;
   }
 
-  async getJwtToken(userId: string): Promise<string> {
+  protected async getJwtTokens(userId: string): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    expiresIn: number;
+  }> {
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new Error('User not found');
@@ -37,7 +39,13 @@ export class AuthService {
     // if (user.restriction === USER_RESTRICTION_FULL) {
     //   throw new AccessForbiddenError('You cannot login right now.');
     // }
-    return this.tokenService.createToken(user.id);
+    const accessToken = this.tokenService.createToken(user.id);
+    const expiresIn = this.tokenService.extractExpirationDate(accessToken);
+    return {
+      accessToken: this.tokenService.createToken(user.id),
+      refreshToken: this.tokenService.createRefreshToken(user.id),
+      expiresIn, // new Date().setTime(new Date().getTime() + ACCESS_TOKEN_EXPIRE_TIME_MS),
+    };
   }
 
   async registerUser(createDto: CreateUserDto): Promise<User> {
@@ -72,38 +80,43 @@ export class AuthService {
     // if (userRestriction === USER_RESTRICTION_LOGIN_BLOCK) {
     //   throw new ForbiddenException();
     // }
-    const userId = user.id;
-    const accessToken = await this.getJwtToken(userId);
-    const refreshToken = this.tokenService.createRefreshToken(userId);
-    // TODO: check this solution
-    // const refreshToken = await this.jwtService.sign(payload, {
-    //   expiresIn: '7h',
-    //   secret: process.env.JWT_REFRESH_SECRET,
-    // });
-    return {
-      user,
-      backendTokens: {
-        accessToken,
-        refreshToken,
-        expiresIn: new Date().setTime(new Date().getTime() + EXPIRE_TIME),
-      },
-    };
+    const backendTokens = await this.getJwtTokens(user.id);
+    await this.updateRefreshToken(user.id, backendTokens.refreshToken);
+    return { user, backendTokens };
   }
 
-  async isLoggedInUser(userId: string): Promise<User> {
+  async isLoggedInUser(userId: string): Promise<{
+    user: Nullable<User>;
+    backendTokens: Nullable<ILoginUserResponse['backendTokens']>;
+  }> {
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new Error('User not found');
     }
-    return user;
+    const backendTokens = await this.getJwtTokens(user.id);
+    return { user, backendTokens };
+  }
+
+  protected async updateRefreshToken(userId: string, refreshToken: string) {
+    const hashedRefreshToken =
+      await this.cryptService.generateHash(refreshToken);
+    await this.usersService.updateRefreshToken(userId, hashedRefreshToken);
   }
 
   async refreshToken(
     userId: string,
+    plainRefreshToken: string,
   ): Promise<ILoginUserResponse['backendTokens']> {
     const user = await this.usersService.findById(userId);
-    if (!user) {
-      throw new Error('User not found');
+    if (!user || !user.refreshToken) {
+      throw new ForbiddenException('Access Denied');
+    }
+    const refreshTokenMatches = await this.cryptService.verify(
+      plainRefreshToken,
+      user.refreshToken,
+    );
+    if (!refreshTokenMatches) {
+      throw new ForbiddenException('Access Denied');
     }
     const data = await this.loginUser(user.email);
     const { backendTokens } = data;

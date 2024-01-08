@@ -76,4 +76,13 @@ export class UsersService {
     user.password = hashedPassword;
     return this.usersRepository.save(user);
   }
+
+  async updateRefreshToken(id: string, refreshToken: string): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.refreshToken = refreshToken;
+    return this.usersRepository.save(user);
+  }
 }

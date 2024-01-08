@@ -45,8 +45,13 @@ export class User {
   @Column()
   public email: string;
 
+  @Exclude({ toPlainOnly: true })
   @Column()
   public password: string;
+
+  @Exclude({ toPlainOnly: true })
+  @Column({ default: null })
+  public refreshToken: string;
 
   @Column()
   public type: UserType;
@@ -60,6 +65,7 @@ export class User {
   @Column({ default: false })
   public isOnboardingPassed: boolean;
 
+  @Exclude({ toPlainOnly: true })
   @Column({ default: null })
   public mollieAccessToken: string;
 
