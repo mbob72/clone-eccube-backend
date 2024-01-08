@@ -7,6 +7,8 @@ import {
   UseGuards,
   HttpCode,
   Get,
+  UseInterceptors,
+  Req,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -21,8 +23,10 @@ import { ILoginUserResponse } from './types';
 import { RefreshJwtGuard } from './guards/refreshAuth.guard';
 import Nullable from '@mollie/api-client/dist/types/src/types/Nullable';
 import { ConfigService } from '@nestjs/config';
+import { TransformInterceptor } from 'src/libs/TransformInterceptor';
 
 @Controller('/v1/auth')
+@UseInterceptors(TransformInterceptor)
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -69,19 +73,17 @@ export class AuthController {
   @Get('/logged_in')
   async isLoggedInUser(
     @UserId() userId: string,
-    req: Request,
-    res: Response,
-  ): Promise<Nullable<User>> {
-    // const cookieName = this.configService.get<string>('COOKIE_NAME')!;
-    // console.log('cookieName', cookieName);
-    // const token = req.cookies[cookieName];
-    // console.log('token', token);
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{
+    user: Nullable<User>;
+    backendTokens: Nullable<ILoginUserResponse['backendTokens']>;
+  }> {
     if (!userId) {
       this.cookiesService.removeTokenInCookies(res);
-      return null;
+      return { user: null, backendTokens: null };
     }
-    const user = await this.authService.isLoggedInUser(userId);
-    return user;
+    const data = await this.authService.isLoggedInUser(userId);
+    return data;
   }
 
   @HttpCode(HttpStatus.OK)
@@ -89,8 +91,15 @@ export class AuthController {
   @Post('/refresh')
   async refreshToken(
     @UserId() userId: string, // extract userId from JwtStrategy `validate` method
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<ILoginUserResponse['backendTokens']> {
-    const data = await this.authService.refreshToken(userId);
+    const plainRefreshToken = this.extractRefreshJwtTokenFromHeader(req);
+    const data = await this.authService.refreshToken(
+      userId,
+      plainRefreshToken!,
+    );
+    this.cookiesService.writeTokenInCookies(res, data.accessToken);
     return data;
   }
 
@@ -98,5 +107,13 @@ export class AuthController {
   @Post('/logout')
   async logoutUser(@Res({ passthrough: true }) res: Response): Promise<void> {
     this.cookiesService.removeTokenInCookies(res);
+  }
+
+  private extractRefreshJwtTokenFromHeader(req: Request) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return null;
+    const [type, token] = authHeader?.split(' ') || [];
+    if (type !== 'Refresh' || !token) return null;
+    return token;
   }
 }

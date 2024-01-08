@@ -35,7 +35,10 @@ export class CookiesService {
   }
 
   writeTokenInCookies(res: Response, userToken: string): void {
-    const options = { ...this.getBaseOptions(), maxAge: this.cookieLifetime };
+    const options = {
+      ...this.getBaseOptions(),
+      // maxAge: this.cookieLifetime
+    };
     res.cookie(this.cookieName, userToken, options);
   }
 
