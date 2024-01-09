@@ -14,31 +14,27 @@ export class TokenService {
     userId: string,
     options: { guest: boolean } = { guest: false },
   ): string {
-    // const nowTimestamp = Math.floor(Date.now() / 1000);
     const payload = {
-      // aud: JwtConstants.issuer,
       iss: JwtConstants.issuer,
-      // iat: nowTimestamp,
       guest: options.guest,
       userId,
     };
-    return this.jwtService.sign(payload, { expiresIn: '15m' });
+    return this.jwtService.sign(payload, {
+      expiresIn: JwtConstants.credentialsLifetime,
+    });
   }
 
   createRefreshToken(
     userId: string,
     options: { guest: boolean } = { guest: false },
   ): string {
-    // const nowTimestamp = Math.floor(Date.now() / 1000);
     const payload = {
-      // aud: JwtConstants.issuer,
       iss: JwtConstants.issuer,
-      // iat: nowTimestamp,
       guest: options.guest,
       userId,
     };
     return this.jwtService.sign(payload, {
-      expiresIn: '7h',
+      expiresIn: JwtConstants.refreshTokenLifetime,
       secret: this.configService.get<string>('jwtRefreshSecret'),
     });
   }
@@ -48,19 +44,15 @@ export class TokenService {
     return exp; // new Date(exp * 1000);
   }
 
-  createResetPasswordToken(
-    userId: string,
-    lifeTime = JwtConstants.resetPasswordLifetime,
-  ): string {
-    const nowTimestamp = Math.floor(Date.now() / 1000);
+  createResetPasswordToken(userId: string): string {
     const payload = {
-      // aud: JwtConstants.issuer,
       iss: JwtConstants.issuer,
       user_id: userId,
-      // iat: nowTimestamp,
-      exp: nowTimestamp + lifeTime,
     };
-    return this.jwtService.sign(payload, { algorithm: 'HS256' });
+    return this.jwtService.sign(payload, {
+      algorithm: 'HS256',
+      expiresIn: JwtConstants.resetPasswordLifetime,
+    });
   }
 
   // createExtraditionFileToken(): string {

@@ -3,7 +3,6 @@ import { CookieOptions, Response } from 'express';
 
 interface CookiesServiceOptions {
   readonly cookieName: string;
-  readonly cookieLifetime: number;
   readonly allowSameSiteNone: boolean;
   readonly cookieDomain?: string;
 }
@@ -11,7 +10,6 @@ interface CookiesServiceOptions {
 @Injectable()
 export class CookiesService {
   private readonly cookieName: string;
-  private readonly cookieLifetime: number;
   private readonly cookieDomain: string | undefined;
   /**
    * Whether 'same-site' cookie attribute can be 'none'.
@@ -25,12 +23,10 @@ export class CookiesService {
   constructor({
     cookieName,
     cookieDomain,
-    cookieLifetime,
     allowSameSiteNone,
   }: CookiesServiceOptions) {
     this.cookieName = cookieName;
     this.cookieDomain = cookieDomain;
-    this.cookieLifetime = cookieLifetime;
     this.allowSameSiteNone = allowSameSiteNone;
   }
 

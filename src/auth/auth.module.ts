@@ -7,7 +7,6 @@ import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { LocalStrategy } from './lib/local.strategy';
 import { CryptService } from './lib/crypt.service';
-import { JwtConstants } from './lib/constants';
 import { TokenService } from './lib/token.service';
 import { CookiesService } from './lib/cookies.service';
 import { AuthController } from './auth.controller';
@@ -29,10 +28,10 @@ import { JwtStrategy } from './lib/jwt.strategy';
         return {
           // global: true,
           secret,
-          signOptions: {
-            expiresIn: '5h',
-            // algorithm: 'HS512',
-          },
+          // signOptions: {
+          // expiresIn: '5h',
+          // algorithm: 'HS512',
+          // },
         };
       },
     }),
@@ -51,7 +50,6 @@ import { JwtStrategy } from './lib/jwt.strategy';
         return new CookiesService({
           cookieName,
           cookieDomain,
-          cookieLifetime: JwtConstants.credentialsLifetime,
           allowSameSiteNone: !!process.env.ALLOW_NO_SAME_SITE,
         });
       },
