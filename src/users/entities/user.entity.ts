@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { UserType } from '../users.type';
 import { CreateUserDto } from '../dto/createUser.dto';
+import { Nullable } from 'src/types/utils';
 
 // TODO: move to separate file
 // TODO: update next time
@@ -50,8 +51,8 @@ export class User {
   public password: string;
 
   @Exclude({ toPlainOnly: true })
-  @Column({ default: null })
-  public refreshToken: string;
+  @Column({ type: 'varchar', nullable: true, default: null })
+  public refreshToken: Nullable<string>;
 
   @Column()
   public type: UserType;
@@ -66,8 +67,8 @@ export class User {
   public isOnboardingPassed: boolean;
 
   @Exclude({ toPlainOnly: true })
-  @Column({ default: null })
-  public mollieAccessToken: string;
+  @Column({ type: 'varchar', nullable: true, default: null })
+  public mollieAccessToken: Nullable<string>;
 
   // user is activate when:
   // successfully pass onboarding

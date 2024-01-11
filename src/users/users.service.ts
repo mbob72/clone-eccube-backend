@@ -30,6 +30,7 @@ export class UsersService {
     return savedUser;
   }
 
+  // can update only public fields
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepository.findById(id);
     if (!user) {
@@ -55,15 +56,6 @@ export class UsersService {
     if (updateUserDto.company) {
       user.company = updateUserDto.company;
     }
-    if (updateUserDto.isActive) {
-      user.isActive = updateUserDto.isActive;
-    }
-    if (updateUserDto.isVerified) {
-      user.isVerified = updateUserDto.isVerified;
-    }
-    if (updateUserDto.mollieAccessToken) {
-      user.mollieAccessToken = updateUserDto.mollieAccessToken;
-    }
     const savedUser = await this.usersRepository.save(user);
     return savedUser;
   }
@@ -83,6 +75,56 @@ export class UsersService {
       throw new Error('User not found');
     }
     user.refreshToken = refreshToken;
+    return this.usersRepository.save(user);
+  }
+  async removeRefreshToken(id: string): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.refreshToken = null;
+    return this.usersRepository.save(user);
+  }
+
+  async setIsVerified(id: string, isVerified = false): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.isVerified = isVerified;
+    return this.usersRepository.save(user);
+  }
+
+  async setIsActive(id: string, isActive = false): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.isActive = isActive;
+    return this.usersRepository.save(user);
+  }
+
+  async saveMollieAccessToken(
+    id: string,
+    token: Nullable<string> = null,
+  ): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.mollieAccessToken = token;
+    return this.usersRepository.save(user);
+  }
+
+  async setOnboardingState(
+    id: string,
+    isOnboardingPassed = false,
+  ): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.isOnboardingPassed = isOnboardingPassed;
     return this.usersRepository.save(user);
   }
 }

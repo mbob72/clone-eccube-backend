@@ -13,3 +13,11 @@ export function extractTokenFromCookies(req: ExpressReq): string | null {
   }
   return null;
 }
+
+export function extractRefreshTokenFromHeader(req: ExpressReq) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+  const [type, token] = authHeader?.split(' ') || [];
+  if (type !== 'Refresh' || !token) return null;
+  return token;
+}

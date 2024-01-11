@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthorizationCode, ModuleOptions } from 'simple-oauth2';
 import { MollieService } from './mollie.service';
@@ -8,6 +8,7 @@ import { UserId } from 'src/auth/decorators/userId.decorator';
 import { generateAuthorizeUrlState } from './lib';
 import { JwtAuthGuard } from 'src/auth/guards/jwtAuth.guard';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from 'src/users/users.service';
 
 export interface ITokenRes {
   token: {
@@ -32,6 +33,7 @@ export class MollieController {
     private readonly mollieService: MollieService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
   ) {
     this.config = {
       client: {
@@ -72,40 +74,40 @@ export class MollieController {
   // @Public()
   @UseGuards(JwtAuthGuard)
   @Get('/auth/token')
-  async callback(@Req() req: Request, @Res() res: Response) {
+  async callback(
+    @UserId() userId: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     const { code } = req.query;
     if (!code) {
       return res
         .status(400)
         .json({ message: 'Authorization code must be provided' });
     }
+    const tokenParams = {
+      code: code as string,
+      redirect_uri: this.callbackUrl,
+      grant_type: 'authorization_code',
+    };
     try {
-      const tokenParams = {
-        code: code as string,
-        redirect_uri: this.callbackUrl,
-        grant_type: 'authorization_code',
-      };
-      try {
-        const data = (await this.client.getToken(
-          tokenParams,
-        )) as unknown as ITokenRes;
-        const access_token = data?.token?.access_token;
-        if (!access_token) {
-          return res.status(400).json({ message: 'Auth error' });
-        }
-        console.log('accessToken::', access_token);
-        const userInfo = this.jwtService.decode(access_token);
-        console.log('userInfo from token::', userInfo);
-        // await this.mollieService.saveAccessToken(token, userId);
-      } catch (error) {
-        console.log('Access Token Error::', error.message);
+      const data = (await this.client.getToken(
+        tokenParams,
+      )) as unknown as ITokenRes;
+      const accessToken = data?.token?.access_token;
+      if (!accessToken) {
+        return res.status(400).json({ message: 'Auth error' });
       }
-      // return res.status(200).json({ access_token });
+      // TODO: update access-token on cookies
+      // TODO: add refresh token logic
+      // TODO: hash access-token in the DB
+      console.log("Mollie's access-token:: ", accessToken);
+      this.usersService.saveMollieAccessToken(userId, accessToken);
+      this.usersService.setOnboardingState(userId, true);
+      const userInfo = this.jwtService.decode(accessToken);
+      console.log("userInfo from Mollie's access-token:: ", userInfo);
     } catch (error) {
-      console.log('Error::', error);
-      return res
-        .status(500)
-        .json({ message: error?.message ?? 'Server error' });
+      console.log('Access Token Error::', error.message);
     }
   }
 
@@ -114,17 +116,5 @@ export class MollieController {
   @Get('/login')
   login(@Req() req: Request, @Res() res: Response) {
     res.send('Hello<br><a href="/auth">Log in with Mollie</a>');
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('/mollie/token')
-  async saveToken(
-    @UserId() userId: string,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    const { token } = req.body;
-    await this.mollieService.saveAccessToken(token, userId);
-    return res.status(200).json({ message: 'Token saved' });
   }
 }
