@@ -20,10 +20,11 @@ import { Public } from './decorators/public.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { JwtAuthGuard } from './guards/jwtAuth.guard';
 import { ILoginUserResponse } from './types';
-import { RefreshJwtGuard } from './guards/refreshAuth.guard';
+import { RefreshJwtGuard } from './guards/refreshJwt.guard';
 import Nullable from '@mollie/api-client/dist/types/src/types/Nullable';
 import { ConfigService } from '@nestjs/config';
 import { TransformInterceptor } from 'src/libs/TransformInterceptor';
+import { extractRefreshTokenFromHeader } from './lib/utils';
 
 @Controller('/v1/auth')
 @UseInterceptors(TransformInterceptor)
@@ -50,7 +51,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/activate')
   async activateUser(@Body() payload: { token: string }): Promise<User> {
-    const user = await this.authService.activateUser(payload.token);
+    const user = await this.authService.verifyUser(payload.token);
     return user;
   }
 
@@ -90,11 +91,12 @@ export class AuthController {
   @UseGuards(RefreshJwtGuard)
   @Post('/refresh')
   async refreshToken(
-    @UserId() userId: string, // extract userId from JwtStrategy `validate` method
+    @UserId() userId: string,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ILoginUserResponse['backendTokens']> {
-    const plainRefreshToken = this.extractRefreshJwtTokenFromHeader(req);
+    // const plainRefreshToken = req.user['refreshToken'];
+    const plainRefreshToken = extractRefreshTokenFromHeader(req);
     const data = await this.authService.refreshToken(
       userId,
       plainRefreshToken!,
@@ -105,15 +107,11 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/logout')
-  async logoutUser(@Res({ passthrough: true }) res: Response): Promise<void> {
+  async logoutUser(
+    @UserId() userId: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     this.cookiesService.removeTokenInCookies(res);
-  }
-
-  private extractRefreshJwtTokenFromHeader(req: Request) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return null;
-    const [type, token] = authHeader?.split(' ') || [];
-    if (type !== 'Refresh' || !token) return null;
-    return token;
+    this.authService.logout(userId);
   }
 }

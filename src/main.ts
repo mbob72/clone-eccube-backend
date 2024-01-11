@@ -14,10 +14,8 @@ const httpsOptions = {
 };
 
 async function bootstrap() {
-  // const app = await NestFactory.create(AppModule);
-  const app = await NestFactory.create(AppModule, { httpsOptions });
-
-  // app.setGlobalPrefix('/v1');
+  const app = await NestFactory.create(AppModule);
+  // const app = await NestFactory.create(AppModule, { httpsOptions });
 
   app.useGlobalPipes(
     new ValidationPipe({

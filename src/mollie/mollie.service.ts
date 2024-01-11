@@ -13,18 +13,6 @@ export class MollieService {
     private readonly usersService: UsersService,
   ) {}
 
-  async saveAccessToken(token: string, userId: string) {
-    if (!token) {
-      throw new Error('Token not passed!');
-    }
-    if (!userId) {
-      throw new Error('User id not passed!');
-    }
-    await this.usersService.update(userId, {
-      mollieAccessToken: token,
-    });
-  }
-
   /**
    * @legacy
    * use `simple-oauth2` method `client.getToken(config)`

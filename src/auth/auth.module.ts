@@ -10,7 +10,8 @@ import { CryptService } from './lib/crypt.service';
 import { TokenService } from './lib/token.service';
 import { CookiesService } from './lib/cookies.service';
 import { AuthController } from './auth.controller';
-import { JwtStrategy } from './lib/jwt.strategy';
+import { AccessTokenStrategy } from './lib/accessToken.strategy';
+import { RefreshTokenStrategy } from './lib/refreshToken.strategy';
 // import { JwtAuthGuard } from './guards/jwtAuth.guard';
 
 @Module({
@@ -57,7 +58,8 @@ import { JwtStrategy } from './lib/jwt.strategy';
     CryptService,
     TokenService,
     LocalStrategy,
-    JwtStrategy,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
 
     // set global guard for module
     // {
@@ -71,7 +73,8 @@ import { JwtStrategy } from './lib/jwt.strategy';
     CryptService,
     TokenService,
     LocalStrategy,
-    JwtStrategy,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
   ],
   controllers: [AuthController],
 })

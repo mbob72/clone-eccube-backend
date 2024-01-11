@@ -123,20 +123,21 @@ export class AuthService {
     return backendTokens;
   }
 
-  async activateUser(userId: string): Promise<User> {
-    const user = await this.usersService.findById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    return this.usersService.update(userId, {
-      isActive: true,
-      isVerified: true,
-    });
+  async verifyUser(userId: string): Promise<User> {
+    return this.usersService.setIsVerified(userId, true);
+  }
+
+  async setOnboardingState(userId: string): Promise<User> {
+    return this.usersService.setOnboardingState(userId, true);
   }
 
   async updatePassword(userId: string, plainPassword: string): Promise<void> {
     const hashedPassword = await this.cryptService.generateHash(plainPassword);
     await this.usersService.updatePassword(userId, hashedPassword);
+  }
+
+  async logout(userId: string): Promise<User> {
+    return this.usersService.removeRefreshToken(userId);
   }
 
   private async isPasswordValid(
