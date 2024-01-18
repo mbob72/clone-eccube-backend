@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-// import { APP_GUARD } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { LocalStrategy } from './lib/local.strategy';
@@ -12,31 +11,9 @@ import { CookiesService } from './lib/cookies.service';
 import { AuthController } from './auth.controller';
 import { AccessTokenStrategy } from './lib/accessToken.strategy';
 import { RefreshTokenStrategy } from './lib/refreshToken.strategy';
-// import { JwtAuthGuard } from './guards/jwtAuth.guard';
 
 @Module({
-  imports: [
-    UsersModule,
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory(configService: ConfigService) {
-        const secret = configService.get<string>('jwtSecret');
-        if (!secret) {
-          throw new Error('JWT secret is not defined');
-        }
-        return {
-          // global: true,
-          secret,
-          // signOptions: {
-          // expiresIn: '5h',
-          // algorithm: 'HS512',
-          // },
-        };
-      },
-    }),
-  ],
+  imports: [UsersModule, PassportModule, JwtModule.register({})],
   providers: [
     AuthService,
     {
@@ -60,12 +37,6 @@ import { RefreshTokenStrategy } from './lib/refreshToken.strategy';
     LocalStrategy,
     AccessTokenStrategy,
     RefreshTokenStrategy,
-
-    // set global guard for module
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: JwtAuthGuard,
-    // },
   ],
   exports: [
     AuthService,

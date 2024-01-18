@@ -27,7 +27,7 @@ export class AuthService {
     return null;
   }
 
-  protected async getJwtTokens(userId: string): Promise<{
+  protected async createJwtTokens(userId: string): Promise<{
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
@@ -42,9 +42,9 @@ export class AuthService {
     const accessToken = this.tokenService.createToken(user.id);
     const expiresIn = this.tokenService.extractExpirationDate(accessToken);
     return {
-      accessToken: this.tokenService.createToken(user.id),
+      accessToken,
       refreshToken: this.tokenService.createRefreshToken(user.id),
-      expiresIn, // new Date().setTime(new Date().getTime() + ACCESS_TOKEN_EXPIRE_TIME_MS),
+      expiresIn,
     };
   }
 
@@ -80,20 +80,29 @@ export class AuthService {
     // if (userRestriction === USER_RESTRICTION_LOGIN_BLOCK) {
     //   throw new ForbiddenException();
     // }
-    const backendTokens = await this.getJwtTokens(user.id);
+    const backendTokens = await this.createJwtTokens(user.id);
     await this.updateRefreshToken(user.id, backendTokens.refreshToken);
     return { user, backendTokens };
   }
 
-  async isLoggedInUser(userId: string): Promise<{
-    user: Nullable<User>;
-    backendTokens: Nullable<ILoginUserResponse['backendTokens']>;
+  async isLoggedInUser(
+    userId: string,
+    accessToken: string,
+  ): Promise<{
+    user: User;
+    backendTokens: ILoginUserResponse['backendTokens'];
   }> {
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new Error('User not found');
     }
-    const backendTokens = await this.getJwtTokens(user.id);
+    const refreshToken = this.tokenService.createRefreshToken(user.id);
+    await this.updateRefreshToken(user.id, refreshToken);
+    const backendTokens = {
+      accessToken,
+      refreshToken,
+      expiresIn: this.tokenService.extractExpirationDate(accessToken),
+    };
     return { user, backendTokens };
   }
 
