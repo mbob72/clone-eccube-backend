@@ -19,8 +19,13 @@ export class TokenService {
       guest: options.guest,
       userId,
     };
+    const secret = this.configService.get<string>('jwtSecret');
+    if (!secret) {
+      throw new Error('JWT secret is not defined');
+    }
     return this.jwtService.sign(payload, {
       expiresIn: JwtConstants.credentialsLifetime,
+      secret,
     });
   }
 
@@ -33,9 +38,13 @@ export class TokenService {
       guest: options.guest,
       userId,
     };
+    const secret = this.configService.get<string>('jwtRefreshSecret');
+    if (!secret) {
+      throw new Error('Refresh JWT secret is not defined');
+    }
     return this.jwtService.sign(payload, {
       expiresIn: JwtConstants.refreshTokenLifetime,
-      secret: this.configService.get<string>('jwtRefreshSecret'),
+      secret,
     });
   }
 
