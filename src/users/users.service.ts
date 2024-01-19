@@ -104,6 +104,19 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async setOnboardingState(
+    id: string,
+    isOnboardingPassed = false,
+  ): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.isOnboardingPassed = isOnboardingPassed;
+    return this.usersRepository.save(user);
+  }
+
+  // Mollie
   async saveMollieAccessToken(
     id: string,
     token: Nullable<string> = null,
@@ -115,16 +128,26 @@ export class UsersService {
     user.mollieAccessToken = token;
     return this.usersRepository.save(user);
   }
-
-  async setOnboardingState(
+  async saveMollieRefreshToken(
     id: string,
-    isOnboardingPassed = false,
+    token: Nullable<string> = null,
   ): Promise<User> {
     const user = await this.usersRepository.findById(id);
     if (!user) {
       throw new Error('User not found');
     }
-    user.isOnboardingPassed = isOnboardingPassed;
+    user.mollieRefreshToken = token;
+    return this.usersRepository.save(user);
+  }
+  async saveMollieProfileId(
+    id: string,
+    profileId: Nullable<string> = null,
+  ): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.mollieProfileId = profileId;
     return this.usersRepository.save(user);
   }
 }

@@ -66,10 +66,6 @@ export class User {
   @Column({ default: false })
   public isOnboardingPassed: boolean;
 
-  @Exclude({ toPlainOnly: true })
-  @Column({ type: 'varchar', nullable: true, default: null })
-  public mollieAccessToken: Nullable<string>;
-
   // user is activate when:
   // successfully pass onboarding
   // has Mollie token
@@ -96,7 +92,25 @@ export class User {
   @Column({ default: null })
   public company: string;
 
-  // auto-set properties
+  /*
+   * Mollie
+   */
+
+  @Exclude({ toPlainOnly: true })
+  @Column({ type: 'varchar', nullable: true, default: null })
+  public mollieAccessToken: Nullable<string>;
+
+  @Exclude({ toPlainOnly: true })
+  @Column({ type: 'varchar', nullable: true, default: null })
+  public mollieRefreshToken: Nullable<string>;
+
+  @Exclude({ toPlainOnly: true })
+  @Column({ type: 'varchar', nullable: true, default: null })
+  public mollieProfileId: Nullable<string>;
+
+  /*
+   * auto-set properties
+   */
 
   @CreateDateColumn()
   public createdAt: Date;
@@ -104,7 +118,9 @@ export class User {
   @UpdateDateColumn()
   public updatedAt: Date;
 
-  // methods
+  /*
+   * methods
+   */
 
   public getFullName(): string {
     return `${this.firstName} ${this.lastName}`;
@@ -114,7 +130,9 @@ export class User {
     this.email = email.toLowerCase().trim();
   }
 
-  // hooks
+  /*
+   * hooks
+   */
 
   @BeforeInsert()
   protected setCreateDate(): void {
