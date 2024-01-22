@@ -171,7 +171,7 @@ export class MollieController {
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Get('/delete/profiles')
+  @Get('/delete/profile')
   async deleteProfiles(@UserId() userId: string) {
     const data = await this.mollieService.deleteMollieProfile(userId);
     return data;
