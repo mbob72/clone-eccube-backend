@@ -1,5 +1,15 @@
 import { ConfigService } from '@nestjs/config';
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthorizationCode, ModuleOptions } from 'simple-oauth2';
 import { MollieService } from './mollie.service';
@@ -9,6 +19,8 @@ import { generateAuthorizeUrlState } from './lib';
 import { JwtAuthGuard } from 'src/auth/guards/jwtAuth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
+import { CreateMollieProfileDto } from './dto/create-mollie-profile.dto';
+import { UpdateMollieProfileDto } from './dto/update-mollie-profile.dto';
 
 export interface ITokenRes {
   token: {
@@ -50,7 +62,6 @@ export class MollieController {
     this.client = new AuthorizationCode(this.config);
   }
 
-  // @Public()
   @UseGuards(JwtAuthGuard)
   @Get('/auth/url')
   create(@Req() req: Request, @Res() res: Response) {
@@ -71,7 +82,6 @@ export class MollieController {
   }
 
   // Callback service parsing the authorization token and asking for the access token
-  // @Public()
   @UseGuards(JwtAuthGuard)
   @Get('/auth/token')
   async callback(
@@ -112,9 +122,58 @@ export class MollieController {
   }
 
   // Just for testing
+  // TODO: delete
   @Public()
   @Get('/login')
   login(@Req() req: Request, @Res() res: Response) {
     res.send('Hello<br><a href="/auth">Log in with Mollie</a>');
+  }
+
+  // *
+  // * Mollie API - profile CRUD
+  // */
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/create/profile')
+  async createProfile(
+    @UserId() userId: string,
+    @Body() createProfileDto: CreateMollieProfileDto,
+  ) {
+    const data = await this.mollieService.createMollieProfile(
+      userId,
+      createProfileDto,
+    );
+    return data;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('/update/profile')
+  async updateProfile(
+    @UserId() userId: string,
+    @Body() updateProfileDto: UpdateMollieProfileDto,
+  ) {
+    const data = await this.mollieService.updateMollieProfile(
+      userId,
+      updateProfileDto,
+    );
+    return data;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('/get/profile')
+  async getProfile(@UserId() userId: string) {
+    const data = await this.mollieService.getMollieProfile(userId);
+    return data;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Get('/delete/profiles')
+  async deleteProfiles(@UserId() userId: string) {
+    const data = await this.mollieService.deleteMollieProfile(userId);
+    return data;
   }
 }
