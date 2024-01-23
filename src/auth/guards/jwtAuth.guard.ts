@@ -38,9 +38,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     try {
       const secret = this.configService.get<string>('jwtSecret');
-      const payload = this.jwtService.verify<IJwtPayload>(token, {
-        secret,
-      });
+      const payload = this.jwtService.verify<IJwtPayload>(token, { secret });
       // set the payload to the request object for access in route handlers
       request['user'] = payload;
     } catch {

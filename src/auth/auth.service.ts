@@ -109,7 +109,12 @@ export class AuthService {
   protected async updateRefreshToken(userId: string, refreshToken: string) {
     const hashedRefreshToken =
       await this.cryptService.generateHash(refreshToken);
-    await this.usersService.updateRefreshToken(userId, hashedRefreshToken);
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.refreshToken = hashedRefreshToken;
+    return this.usersService.save(user);
   }
 
   async refreshToken(
@@ -133,20 +138,31 @@ export class AuthService {
   }
 
   async verifyUser(userId: string): Promise<User> {
-    return this.usersService.setIsVerified(userId, true);
-  }
-
-  async setOnboardingState(userId: string): Promise<User> {
-    return this.usersService.setOnboardingState(userId, true);
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.isVerified = true;
+    return this.usersService.save(user);
   }
 
   async updatePassword(userId: string, plainPassword: string): Promise<void> {
     const hashedPassword = await this.cryptService.generateHash(plainPassword);
-    await this.usersService.updatePassword(userId, hashedPassword);
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.password = hashedPassword;
+    await this.usersService.save(user);
   }
 
   async logout(userId: string): Promise<User> {
-    return this.usersService.removeRefreshToken(userId);
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.refreshToken = null;
+    return this.usersService.save(user);
   }
 
   private async isPasswordValid(

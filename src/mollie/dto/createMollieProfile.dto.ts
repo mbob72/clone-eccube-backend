@@ -13,7 +13,7 @@ export class CreateMollieProfileDto {
   /* The profile’s name should reflect the trade name or brand name of the profile’s website or application. */
   @IsString()
   @IsNotEmpty()
-  readonly name: string;
+  name: string;
 
   /*
     The URL to the profile’s website or application.
@@ -22,29 +22,29 @@ export class CreateMollieProfileDto {
     */
   @IsString()
   @IsNotEmpty()
-  readonly website: string;
+  website: string;
 
   /* The email address associated with the profile’s trade name or brand. */
   @IsEmail()
   @IsNotEmpty()
-  readonly email: string;
+  email: string;
 
   // The phone number associated with the profile’s trade name or brand. Must be in the E.164 format. For example +31208202070.
   @IsString()
   @IsNotEmpty()
-  readonly phone: string;
+  phone: string;
 
   // The products or services that the profile’s website offers.
   @IsString()
   @IsOptional()
-  readonly description?: string;
+  description?: string;
 
   // The industry associated with the profile’s website.
   @IsArray()
   // @ArrayMinSize(1)
   @Type(() => String)
   @IsOptional()
-  readonly countriesOfActivity?: string[];
+  countriesOfActivity?: string[];
 
   /*
     The industry associated with the profile’s trade name or brand.
@@ -53,7 +53,7 @@ export class CreateMollieProfileDto {
     */
   @IsString()
   @IsOptional()
-  readonly businessCategory?: string;
+  businessCategory?: string;
 
   /*
     Creating a test profile by setting this parameter to test,
@@ -62,5 +62,5 @@ export class CreateMollieProfileDto {
     */
   @IsString()
   @IsOptional()
-  readonly mode?: 'live' | 'test';
+  mode: string; // 'live' | 'test';
 }

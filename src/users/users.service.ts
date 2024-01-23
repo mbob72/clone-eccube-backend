@@ -47,98 +47,18 @@ export class UsersService {
     if (updateUserDto.lastName) {
       user.lastName = updateUserDto.lastName;
     }
-    if (updateUserDto.phoneNumber) {
-      user.phoneNumber = updateUserDto.phoneNumber;
-    }
-    if (updateUserDto.address) {
-      user.address = updateUserDto.address;
-    }
-    if (updateUserDto.company) {
-      user.company = updateUserDto.company;
+    if (updateUserDto.phone) {
+      user.phone = updateUserDto.phone;
     }
     const savedUser = await this.usersRepository.save(user);
     return savedUser;
   }
 
-  async updatePassword(id: string, hashedPassword: string): Promise<User> {
-    const user = await this.usersRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.password = hashedPassword;
-    return this.usersRepository.save(user);
-  }
-
-  async updateRefreshToken(id: string, refreshToken: string): Promise<User> {
-    const user = await this.usersRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.refreshToken = refreshToken;
-    return this.usersRepository.save(user);
-  }
-  async removeRefreshToken(id: string): Promise<User> {
-    const user = await this.usersRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.refreshToken = null;
-    return this.usersRepository.save(user);
-  }
-
-  async setIsVerified(id: string, isVerified = false): Promise<User> {
-    const user = await this.usersRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.isVerified = isVerified;
-    return this.usersRepository.save(user);
-  }
-
-  async setIsActive(id: string, isActive = false): Promise<User> {
-    const user = await this.usersRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.isActive = isActive;
-    return this.usersRepository.save(user);
-  }
-
-  async setOnboardingState(
-    id: string,
-    isOnboardingPassed = false,
-  ): Promise<User> {
-    const user = await this.usersRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.isOnboardingPassed = isOnboardingPassed;
+  async save(user: User): Promise<User> {
     return this.usersRepository.save(user);
   }
 
   // Mollie
-  async saveMollieAccessToken(
-    id: string,
-    token: Nullable<string> = null,
-  ): Promise<User> {
-    const user = await this.usersRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.mollieAccessToken = token;
-    return this.usersRepository.save(user);
-  }
-  async saveMollieRefreshToken(
-    id: string,
-    token: Nullable<string> = null,
-  ): Promise<User> {
-    const user = await this.usersRepository.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.mollieRefreshToken = token;
-    return this.usersRepository.save(user);
-  }
   async saveMollieProfileId(
     id: string,
     profileId: Nullable<string> = null,

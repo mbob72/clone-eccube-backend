@@ -11,6 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import config from './config/configuration';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { UsersModule } from './users/users.module';
+import { OrganizationsModule } from './organizations/organizations.module';
 import * as path from 'path';
 
 @Module({
@@ -71,6 +72,7 @@ import * as path from 'path';
     AuthModule,
     MollieModule,
     UsersModule,
+    OrganizationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

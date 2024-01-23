@@ -1,39 +1,34 @@
+import { Organization } from '@mollie/api-client';
 import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class UpdateUserDto {
   @IsEmail()
   @IsOptional()
-  readonly email?: string;
+  email?: string;
 
   @IsString()
   @IsOptional()
-  readonly firstName?: string;
+  firstName?: string;
 
   @IsString()
   @IsOptional()
-  readonly lastName?: string;
+  lastName?: string;
 
   @IsBoolean()
   @IsOptional()
-  readonly isVerified?: boolean;
+  isVerified?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  readonly isActive?: boolean;
+  isActive?: boolean;
 
   @IsString()
   @IsOptional()
-  readonly phoneNumber?: string;
+  phone?: string;
+
+  organization?: Organization;
 
   @IsString()
   @IsOptional()
-  readonly company?: string;
-
-  @IsString()
-  @IsOptional()
-  readonly address?: string;
-
-  @IsString()
-  @IsOptional()
-  readonly mollieAccessToken?: string;
+  mollieAccessToken?: string;
 }
