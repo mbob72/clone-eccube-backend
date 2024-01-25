@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateMollieProfileDto } from './create-mollie-profile.dto';
+import { CreateMollieProfileDto } from './createMollieProfile.dto';
 
 export class UpdateMollieProfileDto extends PartialType(
   CreateMollieProfileDto,

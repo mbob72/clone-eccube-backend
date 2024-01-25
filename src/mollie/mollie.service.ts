@@ -4,9 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom, map } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
-import { CreateMollieProfileDto } from './dto/create-mollie-profile.dto';
+import { CreateMollieProfileDto } from './dto/createMollieProfile.dto';
 import { IMollieProfileResponse } from './types';
-import { UpdateMollieProfileDto } from './dto/update-mollie-profile.dto';
+import { UpdateMollieProfileDto } from './dto/updateMollieProfile.dto';
 
 @Injectable()
 export class MollieService {

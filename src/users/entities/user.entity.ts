@@ -6,12 +6,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { UserType } from '../users.type';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { Nullable } from 'src/types/utils';
+import { Organization } from 'src/organizations/entities/organization.entity';
 
 // TODO: move to separate file
 // TODO: update next time
@@ -21,12 +23,6 @@ export type Address = {
   line: string; // street + apartment - free text (next time: google maps autocomplete input)
   additional: string; // additional info - optional free text
   zip: string;
-};
-export type Company = {
-  name: string;
-  // TODO: add/check main company props
-  iban: string;
-  businessOwner: string;
 };
 
 @Entity('user')
@@ -54,7 +50,10 @@ export class User {
   @Column({ type: 'varchar', nullable: true, default: null })
   public refreshToken: Nullable<string>;
 
-  @Column()
+  @Column({
+    type: 'enum',
+    enum: UserType,
+  })
   public type: UserType;
 
   // user is verified via email
@@ -81,16 +80,15 @@ export class User {
   @Column({ default: '' })
   public lastName: string;
 
-  @Column({ default: null })
-  public phoneNumber: string;
+  @Column({ default: '' })
+  public phone: string;
 
-  // TODO: should be object (city, street, etc)
-  @Column({ default: null })
-  public address: string;
-
-  // TODO: should be object (name, iban, etc)
-  @Column({ default: null })
-  public company: string;
+  @ManyToOne(() => Organization, (organization) => organization, {
+    orphanedRowAction: 'delete',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  organization: Organization;
 
   /*
    * Mollie
@@ -105,12 +103,19 @@ export class User {
   public mollieRefreshToken: Nullable<string>;
 
   @Exclude({ toPlainOnly: true })
+  @Column({ type: 'date', nullable: true, default: null })
+  public mollieAccessTokenExpiresAt: Nullable<string>;
+
+  @Exclude({ toPlainOnly: true })
   @Column({ type: 'varchar', nullable: true, default: null })
   public mollieProfileId: Nullable<string>;
 
   /*
    * auto-set properties
    */
+
+  @Column({ type: 'varchar', default: null })
+  public organizationId: Nullable<string>;
 
   @CreateDateColumn()
   public createdAt: Date;

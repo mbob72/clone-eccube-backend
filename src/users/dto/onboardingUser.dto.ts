@@ -1,23 +1,18 @@
+import { Organization } from '@mollie/api-client';
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class OnboardingUserDto {
   @IsString()
   @IsNotEmpty()
-  readonly firstName: string;
+  firstName: string;
 
   @IsString()
   @IsNotEmpty()
-  readonly lastName: string;
+  lastName: string;
 
   @IsString()
   @IsNotEmpty()
-  readonly phoneNumber: string;
+  phone: string;
 
-  @IsString()
-  @IsNotEmpty()
-  readonly address: string;
-
-  @IsString()
-  @IsNotEmpty()
-  readonly company: string;
+  organization: Organization;
 }
