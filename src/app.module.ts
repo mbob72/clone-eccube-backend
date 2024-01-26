@@ -8,8 +8,14 @@ import {
   // TypeOrmModuleOptions
 } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import config from './config/configuration';
-import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import config from './app/config/configuration';
+import {
+  AcceptLanguageResolver,
+  CookieResolver,
+  HeaderResolver,
+  I18nModule,
+  QueryResolver,
+} from 'nestjs-i18n';
 import { UsersModule } from './users/users.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import * as path from 'path';
@@ -58,12 +64,14 @@ import * as path from 'path';
         },
         typesOutputPath: path.join(
           __dirname,
-          '../src/generated/i18n.generated.ts',
+          '../src/app/generated/i18n.generated.ts',
         ),
       }),
       resolvers: [
         { use: QueryResolver, options: ['lang'] },
         AcceptLanguageResolver,
+        new HeaderResolver(['x-lang']),
+        new CookieResolver(),
       ],
     }),
 

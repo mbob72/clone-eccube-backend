@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Nullable } from 'src/types/utils';
+import { Nullable } from 'src/app/types/utils';
 
 @Injectable()
 export class UsersRepository {
@@ -31,4 +31,12 @@ export class UsersRepository {
   async save(user: User): Promise<User> {
     return this.usersRepository.save(user);
   }
+
+  // async getOrganization(userId: string): Promise<any> {
+  //   const org = await this.usersRepository
+  //     .createQueryBuilder('user')
+  //     .leftJoinAndSelect('user.organization', 'organization')
+  //     .getOne();
+  //   return org;
+  // }
 }

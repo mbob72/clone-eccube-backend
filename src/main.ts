@@ -9,8 +9,8 @@ import { ValidationPipe } from '@nestjs/common';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const httpsOptions = {
-  key: fs.readFileSync('src/ssl/bidding.eccube.key'),
-  cert: fs.readFileSync('src/ssl/bidding.eccube.crt'),
+  key: fs.readFileSync('src/app/ssl/bidding.eccube.key'),
+  cert: fs.readFileSync('src/app/ssl/bidding.eccube.crt'),
 };
 
 async function bootstrap() {

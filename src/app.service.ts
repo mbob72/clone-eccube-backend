@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { I18nContext, I18nService } from 'nestjs-i18n';
-import { I18nTranslations } from './generated/i18n.generated';
+import { I18nTranslations } from './app/generated/i18n.generated';
 
 @Injectable()
 export class AppService {

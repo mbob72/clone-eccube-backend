@@ -23,7 +23,7 @@ import { ILoginUserResponse } from './types';
 import { RefreshJwtGuard } from './guards/refreshJwt.guard';
 import Nullable from '@mollie/api-client/dist/types/src/types/Nullable';
 import { ConfigService } from '@nestjs/config';
-import { TransformInterceptor } from 'src/libs/TransformInterceptor';
+import { TransformInterceptor } from 'src/app/libs/TransformInterceptor';
 import {
   extractJwtTokenFromRequest,
   extractRefreshTokenFromHeader,

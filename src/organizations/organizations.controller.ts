@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   // Put,
   // Req,
@@ -16,6 +17,12 @@ import { CreateOrganizationDto } from './dto/createOrganization.dto';
 // @UseInterceptors(TransformInterceptor)
 export class OrganizationsController {
   constructor(private readonly orgsService: OrganizationsService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/current')
+  async get(@UserId() userId: string) {
+    return this.orgsService.getCurrent(userId);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post('/create')
