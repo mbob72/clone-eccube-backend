@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Nullable } from 'src/types/utils';
+import { Nullable } from 'src/app/types/utils';
 import { OrganizationsRepository } from './organizations.repository';
 import { Organization } from './entities/organization.entity';
 import { UsersService } from 'src/users/users.service';
@@ -19,6 +19,17 @@ export class OrganizationsService {
 
   async findById(id: string): Promise<Nullable<Organization>> {
     return this.orgsRepository.findById(id);
+  }
+
+  async getCurrent(userId: string): Promise<Nullable<Organization>> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    if (!user.organizationId) {
+      throw new Error('User has no organization');
+    }
+    return this.orgsRepository.findById(user.organizationId);
   }
 
   async create(

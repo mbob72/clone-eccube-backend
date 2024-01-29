@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { User } from 'src/users/entities/user.entity';
-import { Nullable } from 'src/types/utils';
+import { Nullable } from 'src/app/types/utils';
 import { CryptService } from './lib/crypt.service';
 import { TokenService } from './lib/token.service';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';

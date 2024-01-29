@@ -68,12 +68,23 @@ export class MollieController {
   create() {
     const authorizationUri = this.client.authorizeURL({
       redirect_uri: this.callbackUrl,
+      // TODO: update permissions
+      // https://docs.mollie.com/connect/permissions
       scope: [
         'payments.write',
         'payments.read',
         'refunds.write',
         'organizations.read',
         'organizations.write',
+        'profiles.read',
+        'profiles.write',
+        'customers.read',
+        'customers.write',
+        'invoices.read',
+        'orders.read',
+        'orders.write',
+        'payment-links.read',
+        'payment-links.write',
       ],
       state: generateAuthorizeUrlState(), // '3(#0/!~',
     });
@@ -125,7 +136,7 @@ export class MollieController {
     user.mollieAccessToken = accessToken;
     user.mollieRefreshToken = refreshToken;
     user.mollieAccessTokenExpiresAt = expiresAt;
-    user.isOnboardingPassed = true;
+    user.isKybPassed = true;
     await this.usersService.save(user);
 
     return res.status(200).json({ accessToken });
@@ -152,13 +163,11 @@ export class MollieController {
     if (!organization) {
       throw new Error('Organization not found');
     }
-    const createProfileDto: CreateMollieProfileDto = pick(organization, [
-      'name',
-      'email',
-      'phone',
-      'website',
-      'mode',
-    ]);
+    const createProfileDto: CreateMollieProfileDto = pick(
+      // TODO: `businessCategory` !!!!!
+      { ...organization, businessCategory: 'OTHER_MERCHANDISE' },
+      ['name', 'email', 'phone', 'website', 'businessCategory', 'mode'],
+    );
     const profile = await this.mollieService.createMollieProfile(
       userId,
       createProfileDto,

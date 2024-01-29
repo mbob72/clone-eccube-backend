@@ -9,7 +9,7 @@ import {
 import { UsersService } from './users.service';
 import { UserId } from 'src/auth/decorators/userId.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwtAuth.guard';
-import { TransformInterceptor } from 'src/libs/TransformInterceptor';
+import { TransformInterceptor } from 'src/app/libs/TransformInterceptor';
 import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Controller('/v1/user')

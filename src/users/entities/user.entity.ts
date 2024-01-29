@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { UserType } from '../users.type';
 import { CreateUserDto } from '../dto/createUser.dto';
-import { Nullable } from 'src/types/utils';
+import { Nullable } from 'src/app/types/utils';
 import { Organization } from 'src/organizations/entities/organization.entity';
 
 // TODO: move to separate file
@@ -63,16 +63,16 @@ export class User {
   public isVerified: boolean;
 
   @Column({ default: false })
-  public isOnboardingPassed: boolean;
+  public isKybPassed: boolean;
 
   // user is activate when:
-  // successfully pass onboarding
+  // successfully pass KYB
   // has Mollie token
   // ~wait 24h after that (Mollie need time to activate account)
   @Column({ default: false })
   public isActive: boolean;
 
-  // next properties that should be set via onboarding
+  // next properties that should be set via KYB
 
   @Column({ default: '' })
   public firstName: string;
@@ -152,6 +152,6 @@ export class User {
   // TODO: add 24h delay next time
   @BeforeUpdate()
   protected setIsActive(): void {
-    this.isActive = this.isOnboardingPassed && !!this.mollieAccessToken;
+    this.isActive = this.isKybPassed && !!this.mollieAccessToken;
   }
 }
