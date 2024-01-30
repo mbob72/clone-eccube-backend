@@ -24,6 +24,13 @@ export class UsersRepository {
       .getOne();
   }
 
+  async findByIdWithOrganization(id: string): Promise<Nullable<User>> {
+    return this.usersRepository.findOne({
+      where: { id },
+      relations: ['organization'],
+    });
+  }
+
   async remove(id: string): Promise<void> {
     await this.usersRepository.delete(id);
   }

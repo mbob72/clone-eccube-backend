@@ -40,11 +40,10 @@ export class OrganizationsService {
     if (!user) {
       throw new Error('User not found');
     }
-    let organization = await this.orgsRepository.findByEmail(createDto.email);
-    if (!organization) {
-      organization = Organization.createByDto(createDto);
-      Object.assign(organization, { representatives: [user] });
-    }
+    // TODO: add working check - now return first one
+    // let organization = await this.orgsRepository.findByEmail(createDto.email);
+    const organization = Organization.createByDto(createDto);
+    Object.assign(organization, { representatives: [user] });
     const savedOrganization = await this.orgsRepository.save(organization);
     return savedOrganization;
   }

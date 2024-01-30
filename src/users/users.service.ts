@@ -17,6 +17,10 @@ export class UsersService {
     return this.usersRepository.findById(id);
   }
 
+  async findByIdWithOrganization(id: string): Promise<Nullable<User>> {
+    return this.usersRepository.findByIdWithOrganization(id);
+  }
+
   async create(createDto: CreateUserDto): Promise<User> {
     let user = await this.usersRepository.findByEmail(createDto.email);
     if (user) {
