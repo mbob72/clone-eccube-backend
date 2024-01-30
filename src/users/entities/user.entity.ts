@@ -6,6 +6,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -87,7 +88,9 @@ export class User {
     orphanedRowAction: 'delete',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
+    nullable: true,
   })
+  @JoinColumn({ name: 'organizationId' })
   organization: Organization;
 
   /*

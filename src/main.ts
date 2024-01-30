@@ -27,9 +27,10 @@ async function bootstrap() {
 
   // TODO: fix CorsOptions next time
   app.enableCors({
-    origin: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+    origin: true, // white URLS next time for dev & prod
+    // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    // allowedHeaders: ['Content-Type', 'Authorization'],
   });
   app.use(cookieParser());
   app.use(json());

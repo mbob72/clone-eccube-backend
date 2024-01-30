@@ -149,17 +149,12 @@ export class MollieController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('/create/profile')
-  async createProfile(
-    @UserId() userId: string,
-    // @Body() createProfileDto: CreateMollieProfileDto,
-  ) {
-    const user = await this.usersService.findById(userId);
+  async createProfile(@UserId() userId: string) {
+    const user = await this.usersService.findByIdWithOrganization(userId);
     if (!user) {
       throw new Error('User not found');
     }
-    const organization = await this.organizationsService.findById(
-      user.organizationId!,
-    );
+    const { organization } = user;
     if (!organization) {
       throw new Error('Organization not found');
     }
