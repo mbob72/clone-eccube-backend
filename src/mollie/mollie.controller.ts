@@ -19,11 +19,10 @@ import { UserId } from 'src/auth/decorators/userId.decorator';
 import { generateAuthorizeUrlState } from './lib';
 import { JwtAuthGuard } from 'src/auth/guards/jwtAuth.guard';
 import { UsersService } from 'src/users/users.service';
-import { CreateMollieProfileDto } from './dto/createMollieProfile.dto';
 import { UpdateMollieProfileDto } from './dto/updateMollieProfile.dto';
-import { pick } from 'radash';
 import {
   IMollieListPaymentMethodsResponse,
+  IMollieOnboardingStatusResponse,
   IMollieProfileEnabledPaymentMethodResponse,
   IMollieTokensResponse,
   MollieMethodQuery,
@@ -145,25 +144,7 @@ export class MollieController {
   @HttpCode(HttpStatus.CREATED)
   @Post('/create/profile')
   async createProfile(@UserId() userId: string) {
-    const user = await this.usersService.findByIdWithOrganization(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    const { organization } = user;
-    if (!organization) {
-      throw new Error('Organization not found');
-    }
-    const createProfileDto: CreateMollieProfileDto = pick(
-      // TODO: `businessCategory` !!!!!
-      { ...organization, businessCategory: 'OTHER_MERCHANDISE' },
-      ['name', 'email', 'phone', 'website', 'businessCategory', 'mode'],
-    );
-    const profile = await this.mollieService.createMollieProfile(
-      userId,
-      createProfileDto,
-    );
-    console.log('profile:: ', profile);
-    return profile;
+    return this.mollieService.createMollieProfile(userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -173,27 +154,21 @@ export class MollieController {
     @UserId() userId: string,
     @Body() updateProfileDto: UpdateMollieProfileDto,
   ) {
-    const data = await this.mollieService.updateMollieProfile(
-      userId,
-      updateProfileDto,
-    );
-    return data;
+    return this.mollieService.updateMollieProfile(userId, updateProfileDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('/get/profile')
   async getProfile(@UserId() userId: string) {
-    const data = await this.mollieService.getMollieProfile(userId);
-    return data;
+    return this.mollieService.getMollieProfile(userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Get('/delete/profile')
   async deleteProfiles(@UserId() userId: string) {
-    const data = await this.mollieService.deleteMollieProfile(userId);
-    return data;
+    return this.mollieService.deleteMollieProfile(userId);
   }
 
   // *
@@ -204,13 +179,12 @@ export class MollieController {
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Post('/v2/profiles/methods/:method')
+  @Post('/profiles/methods/:method')
   async enablePaymentMethod(
     @UserId() userId: string,
     @Param('method') method: string,
   ): Promise<IMollieProfileEnabledPaymentMethodResponse> {
-    const data = await this.mollieService.enablePaymentMethod(userId, method);
-    return data;
+    return this.mollieService.enablePaymentMethod(userId, method);
   }
 
   // *
@@ -221,12 +195,26 @@ export class MollieController {
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get('/v2/methods')
+  @Get('/methods')
   async getPaymentMethods(
     @UserId() userId: string,
     @Query('include') include: MollieMethodQuery,
   ): Promise<IMollieListPaymentMethodsResponse> {
-    const data = await this.mollieService.listPaymentMethods(userId, include);
-    return data;
+    return this.mollieService.listPaymentMethods(userId, include);
+  }
+
+  // *
+  // * Mollie API - get onboarding status
+  // *
+  // * https://docs.mollie.com/reference/v2/onboarding-api/get-onboarding-status
+  // */
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('/onboarding-status')
+  async getOnboardingStatus(
+    @UserId() userId: string,
+  ): Promise<IMollieOnboardingStatusResponse> {
+    return this.mollieService.getOnboardingStatus(userId);
   }
 }

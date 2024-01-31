@@ -167,3 +167,30 @@ export interface IMollieListPaymentMethodsResponse {
     };
   };
 }
+
+export interface IMollieOnboardingStatusResponse {
+  resource: string; //   'onboarding';
+  name: string; //  'Mollie B.V.';
+  signedUpAt: string; //  '2018-12-20T10:49:08+00:00';
+  status: string; //   'completed';
+  canReceivePayments: boolean;
+  canReceiveSettlements: boolean;
+  _links: {
+    self: {
+      href: string; //   'https://api.mollie.com/v2/onboarding/me';
+      type: string; //   'application/hal+json';
+    };
+    dashboard: {
+      href: string; //   'https://www.mollie.com/dashboard/onboarding';
+      type: string; //   'text/html';
+    };
+    organization: {
+      href: string; //   'https://api.mollie.com/v2/organization/org_12345';
+      type: string; //   'application/hal+json';
+    };
+    documentation: {
+      href: string; //   'https://docs.mollie.com/reference/v2/onboarding-api/get-onboarding-status';
+      type: string; //   'text/html';
+    };
+  };
+}

@@ -7,11 +7,13 @@ import { UsersService } from 'src/users/users.service';
 import { CreateMollieProfileDto } from './dto/createMollieProfile.dto';
 import {
   IMollieListPaymentMethodsResponse,
+  IMollieOnboardingStatusResponse,
   IMollieProfileEnabledPaymentMethodResponse,
   IMollieProfileResponse,
   MollieMethodQuery,
 } from './types';
 import { UpdateMollieProfileDto } from './dto/updateMollieProfile.dto';
+import { pick } from 'radash';
 
 @Injectable()
 export class MollieService {
@@ -68,22 +70,28 @@ export class MollieService {
   // * Mollie API - profile CRUD
   // */
 
-  async createMollieProfile(
-    userId: string,
-    payload: CreateMollieProfileDto,
-  ): Promise<IMollieProfileResponse> {
-    const user = await this.usersService.findById(userId);
+  async createMollieProfile(userId: string): Promise<IMollieProfileResponse> {
+    const user = await this.usersService.findByIdWithOrganization(userId);
     if (!user) {
-      throw new Error('User not found!');
+      throw new Error('User not found');
+    }
+    const { organization } = user;
+    if (!organization) {
+      throw new Error('Organization not found');
     }
     const { mollieAccessToken } = user;
     if (!mollieAccessToken) {
       throw new Error('Mollie access token not found!');
     }
+    const createProfileDto: CreateMollieProfileDto = pick(
+      // TODO: `businessCategory` !!!!!
+      { ...organization, businessCategory: 'OTHER_MERCHANDISE' },
+      ['name', 'email', 'phone', 'website', 'businessCategory', 'mode'],
+    );
     try {
       const data = await firstValueFrom(
         this.httpClient
-          .post(`${this.apiHost}/v2/profiles`, payload, {
+          .post(`${this.apiHost}/v2/profiles`, createProfileDto, {
             headers: {
               Authorization: `Bearer ${mollieAccessToken}`,
             },
@@ -301,6 +309,44 @@ export class MollieService {
     } catch (error) {
       console.log('error:: ', error.message);
       throw 'Mollie list payment methods error';
+    }
+  }
+
+  // *
+  // * Mollie API - list of Payment Methods
+  // */
+
+  async getOnboardingStatus(
+    userId: string,
+  ): Promise<IMollieOnboardingStatusResponse> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found!');
+    }
+    const { mollieAccessToken } = user;
+    if (!mollieAccessToken) {
+      throw new Error('Mollie access token not found!');
+    }
+    try {
+      const res = await firstValueFrom(
+        this.httpClient
+          .get(`${this.apiHost}/v2/onboarding/me`, {
+            headers: {
+              Authorization: `Bearer ${mollieAccessToken}`,
+            },
+          })
+          .pipe(
+            map((response) => response.data),
+            catchError((error: AxiosError) => {
+              console.log('error:: ', error.message);
+              throw 'An error happened!';
+            }),
+          ),
+      );
+      return res;
+    } catch (error) {
+      console.log('error:: ', error.message);
+      throw 'Mollie onboarding status error';
     }
   }
 }
