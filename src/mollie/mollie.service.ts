@@ -5,11 +5,20 @@ import { AxiosError } from 'axios';
 import { catchError, firstValueFrom, map } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
 import { CreateMollieProfileDto } from './dto/createMollieProfile.dto';
-import { IMollieProfileResponse } from './types';
+import {
+  IMollieListPaymentMethodsResponse,
+  IMollieOnboardingStatusResponse,
+  IMollieProfileEnabledPaymentMethodResponse,
+  IMollieProfileResponse,
+  MollieMethodQuery,
+} from './types';
 import { UpdateMollieProfileDto } from './dto/updateMollieProfile.dto';
+import { pick } from 'radash';
 
 @Injectable()
 export class MollieService {
+  private apiHost: string = this.configService.get('mollie.apiHost')!;
+
   constructor(
     private readonly httpClient: HttpService,
     private readonly configService: ConfigService,
@@ -23,7 +32,7 @@ export class MollieService {
   /**
    * @legacy
    * use `simple-oauth2` method `client.getToken(config)`
-   * saved just for usage example
+   * saved just for explanation how it works
    */
   async getAccessToken(code: string, redirect_uri: string) {
     const user = this.configService.get('mollie.clientId')!;
@@ -33,7 +42,6 @@ export class MollieService {
       this.httpClient
         .post(
           'https://api.mollie.com/oauth2/tokens',
-          // body: token params
           {
             code,
             redirect_uri,
@@ -62,30 +70,32 @@ export class MollieService {
   // * Mollie API - profile CRUD
   // */
 
-  async createMollieProfile(
-    userId: string,
-    payload: CreateMollieProfileDto,
-  ): Promise<IMollieProfileResponse> {
-    const user = await this.usersService.findById(userId);
+  async createMollieProfile(userId: string): Promise<IMollieProfileResponse> {
+    const user = await this.usersService.findByIdWithOrganization(userId);
     if (!user) {
-      throw new Error('User not found!');
+      throw new Error('User not found');
+    }
+    const { organization } = user;
+    if (!organization) {
+      throw new Error('Organization not found');
     }
     const { mollieAccessToken } = user;
     if (!mollieAccessToken) {
       throw new Error('Mollie access token not found!');
     }
+    const createProfileDto: CreateMollieProfileDto = pick(
+      // TODO: `businessCategory` !!!!!
+      { ...organization, businessCategory: 'OTHER_MERCHANDISE' },
+      ['name', 'email', 'phone', 'website', 'businessCategory', 'mode'],
+    );
     try {
       const data = await firstValueFrom(
         this.httpClient
-          .post(
-            `${this.configService.get('mollie.tokenHost')!}/v2/profiles`,
-            payload,
-            {
-              headers: {
-                Authorization: `Bearer ${mollieAccessToken}`,
-              },
+          .post(`${this.apiHost}/v2/profiles`, createProfileDto, {
+            headers: {
+              Authorization: `Bearer ${mollieAccessToken}`,
             },
-          )
+          })
           .pipe(
             map((response) => response.data),
             catchError((error: AxiosError) => {
@@ -122,17 +132,11 @@ export class MollieService {
     try {
       const data = await firstValueFrom(
         this.httpClient
-          .patch(
-            `${this.configService.get(
-              'mollie.tokenHost',
-            )!}/v2/profiles/${mollieProfileId}`,
-            payload,
-            {
-              headers: {
-                Authorization: `Bearer ${mollieAccessToken}`,
-              },
+          .patch(`${this.apiHost}/v2/profiles/${mollieProfileId}`, payload, {
+            headers: {
+              Authorization: `Bearer ${mollieAccessToken}`,
             },
-          )
+          })
           .pipe(
             map((response) => response.data),
             catchError((error: AxiosError) => {
@@ -165,16 +169,11 @@ export class MollieService {
     try {
       const data = await firstValueFrom(
         this.httpClient
-          .get(
-            `${this.configService.get(
-              'mollie.tokenHost',
-            )!}/v2/profiles/${mollieProfileId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${mollieAccessToken}`,
-              },
+          .get(`${this.apiHost}/v2/profiles/${mollieProfileId}`, {
+            headers: {
+              Authorization: `Bearer ${mollieAccessToken}`,
             },
-          )
+          })
           .pipe(
             map((response) => response.data),
             catchError((error: AxiosError) => {
@@ -207,10 +206,52 @@ export class MollieService {
     try {
       await firstValueFrom(
         this.httpClient
-          .delete(
-            `${this.configService.get(
-              'mollie.tokenHost',
-            )!}/v2/profiles/${mollieProfileId}`,
+          .delete(`${this.apiHost}/v2/profiles/${mollieProfileId}`, {
+            headers: {
+              Authorization: `Bearer ${mollieAccessToken}`,
+            },
+          })
+          .pipe(
+            map((response) => response.data),
+            catchError((error: AxiosError) => {
+              console.log('error:: ', error.message);
+              throw 'An error happened!';
+            }),
+          ),
+      );
+      return { id: mollieProfileId };
+    } catch (error) {
+      console.log('error:: ', error.message);
+      throw 'Delete Mollie profile error';
+    }
+  }
+
+  // *
+  // * Mollie API - enable Payment Methods
+  // */
+
+  // TODO: create interface for `method` param
+  async enablePaymentMethod(
+    userId: string,
+    method: string,
+  ): Promise<IMollieProfileEnabledPaymentMethodResponse> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found!');
+    }
+    const { mollieAccessToken } = user;
+    if (!mollieAccessToken) {
+      throw new Error('Mollie access token not found!');
+    }
+    const { mollieProfileId } = user;
+    if (!mollieProfileId) {
+      throw new Error('Mollie profileId not found!');
+    }
+    try {
+      const res = await firstValueFrom(
+        this.httpClient
+          .post(
+            `${this.apiHost}/v2/profiles/${mollieProfileId}/methods/${method}`,
             {
               headers: {
                 Authorization: `Bearer ${mollieAccessToken}`,
@@ -225,10 +266,87 @@ export class MollieService {
             }),
           ),
       );
-      return { id: mollieProfileId };
+      return res;
     } catch (error) {
       console.log('error:: ', error.message);
-      throw 'Delete Mollie profile error';
+      throw 'Enable Mollie profile payment method error';
+    }
+  }
+
+  // *
+  // * Mollie API - list of Payment Methods
+  // */
+
+  async listPaymentMethods(
+    userId: string,
+    include: MollieMethodQuery,
+  ): Promise<IMollieListPaymentMethodsResponse> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found!');
+    }
+    const { mollieAccessToken } = user;
+    if (!mollieAccessToken) {
+      throw new Error('Mollie access token not found!');
+    }
+    try {
+      const res = await firstValueFrom(
+        this.httpClient
+          .get(`${this.apiHost}/v2/methods?include=${include}`, {
+            headers: {
+              Authorization: `Bearer ${mollieAccessToken}`,
+            },
+          })
+          .pipe(
+            map((response) => response.data),
+            catchError((error: AxiosError) => {
+              console.log('error:: ', error.message);
+              throw 'An error happened!';
+            }),
+          ),
+      );
+      return res;
+    } catch (error) {
+      console.log('error:: ', error.message);
+      throw 'Mollie list payment methods error';
+    }
+  }
+
+  // *
+  // * Mollie API - list of Payment Methods
+  // */
+
+  async getOnboardingStatus(
+    userId: string,
+  ): Promise<IMollieOnboardingStatusResponse> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error('User not found!');
+    }
+    const { mollieAccessToken } = user;
+    if (!mollieAccessToken) {
+      throw new Error('Mollie access token not found!');
+    }
+    try {
+      const res = await firstValueFrom(
+        this.httpClient
+          .get(`${this.apiHost}/v2/onboarding/me`, {
+            headers: {
+              Authorization: `Bearer ${mollieAccessToken}`,
+            },
+          })
+          .pipe(
+            map((response) => response.data),
+            catchError((error: AxiosError) => {
+              console.log('error:: ', error.message);
+              throw 'An error happened!';
+            }),
+          ),
+      );
+      return res;
+    } catch (error) {
+      console.log('error:: ', error.message);
+      throw 'Mollie onboarding status error';
     }
   }
 }
