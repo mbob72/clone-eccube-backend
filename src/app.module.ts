@@ -19,6 +19,8 @@ import {
 import { UsersModule } from './users/users.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import * as path from 'path';
+import { AxiosRetryModule } from 'nestjs-axios-retry';
+import axiosRetry from 'axios-retry';
 
 @Module({
   imports: [
@@ -74,6 +76,22 @@ import * as path from 'path';
         new CookieResolver(),
       ],
     }),
+
+    // https://jarvislk.medium.com/introducing-nestjs-axios-retry-enhanced-resilience-for-http-requests-in-nestjs-ccf00db15f9d
+    AxiosRetryModule.forRoot({
+      axiosRetryConfig: {
+        retries: 3,
+        retryDelay: axiosRetry.exponentialDelay,
+        shouldResetTimeout: true,
+        retryCondition: (error) => error?.response?.status === 429,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        onRetry: (retryCount, _error, _requestConfig) => {
+          console.log(`Retrying request attempt ${retryCount}`);
+        },
+      },
+    }),
+    // custom usage example:
+    // const res = await firstValueFrom(this.httpService.get('http://ex.com', { 'axios-retry': { retries: 3, retryDelay: (retryCount) => retryCount * 1000 } }));
 
     // APP MODULES
 
