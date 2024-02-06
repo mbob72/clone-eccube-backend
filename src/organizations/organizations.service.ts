@@ -52,33 +52,25 @@ export class OrganizationsService {
     id: string,
     updateDto: UpdateOrganizationDto,
   ): Promise<Organization> {
-    const organization = await this.orgsRepository.findById(id);
+    const user = await this.usersService.findByIdWithOrganization(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const { organization } = user;
     if (!organization) {
       throw new Error('Organization not found');
     }
-    if (updateDto.email && updateDto.email !== organization.email) {
-      organization.email = updateDto.email;
-    }
-    if (updateDto.name) {
-      organization.name = updateDto.name;
-    }
-    if (updateDto.website) {
-      organization.website = updateDto.website;
-    }
-    if (updateDto.phone) {
-      organization.phone = updateDto.phone;
-    }
-    if (updateDto.mode) {
-      organization.mode = updateDto.mode;
-    }
-    if (updateDto.description) {
-      organization.description = updateDto.description;
-    }
-    if (updateDto.countriesOfActivity) {
-      organization.countriesOfActivity = updateDto.countriesOfActivity;
-    }
-    if (updateDto.businessCategory) {
-      organization.businessCategory = updateDto.businessCategory;
+    for (const key in updateDto) {
+      if (
+        updateDto[key as keyof UpdateOrganizationDto] &&
+        (!organization[key as keyof Organization] ||
+          updateDto[key as keyof UpdateOrganizationDto] !==
+            organization[key as keyof Organization])
+      ) {
+        organization[key as keyof Organization] = updateDto[
+          key as keyof UpdateOrganizationDto
+        ] as any;
+      }
     }
     const saved = await this.orgsRepository.save(organization);
     return saved;

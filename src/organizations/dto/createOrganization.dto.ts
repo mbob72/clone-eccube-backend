@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsNotEmpty,
   IsOptional,
   IsString,
   ValidateNested,
@@ -18,6 +19,24 @@ export class CreateOrganizationDto extends CreateMollieProfileDto {
   representatives: CreateUserDto[];
 
   @IsString()
-  @IsOptional()
-  address: string;
+  @IsNotEmpty()
+  public vatNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  public registrationNumber: string;
+
+  // address
+
+  @IsString()
+  public streetAndNumber: string;
+
+  @IsString()
+  public postalCode: string;
+
+  @IsString()
+  public city: string;
+
+  @IsString()
+  public country: string;
 }

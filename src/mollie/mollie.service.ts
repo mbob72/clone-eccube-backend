@@ -83,11 +83,14 @@ export class MollieService {
     if (!mollieAccessToken) {
       throw new Error('Mollie access token not found!');
     }
-    const createProfileDto: CreateMollieProfileDto = pick(
-      // TODO: `businessCategory` !!!!!
-      { ...organization, businessCategory: 'OTHER_MERCHANDISE' },
-      ['name', 'email', 'phone', 'website', 'businessCategory', 'mode'],
-    );
+    const createProfileDto: CreateMollieProfileDto = pick({ ...organization }, [
+      'name',
+      'email',
+      'phone',
+      'website',
+      'businessCategory',
+      'mode',
+    ]);
     try {
       const data = await firstValueFrom(
         this.httpClient
@@ -223,6 +226,70 @@ export class MollieService {
     } catch (error) {
       console.log('error:: ', error.message);
       throw 'Delete Mollie profile error';
+    }
+  }
+
+  // *
+  // * Mollie API - submit onboarding data
+  // */
+  // TODO: types
+  async submitOnboardingData(userId: string): Promise<any> {
+    const user = await this.usersService.findByIdWithOrganization(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const { organization } = user;
+    if (!organization) {
+      throw new Error('Organization not found');
+    }
+    const { mollieAccessToken } = user;
+    if (!mollieAccessToken) {
+      throw new Error('Mollie access token not found!');
+    }
+    const onboardingDto: any = {
+      organization: {
+        name: organization.name,
+        vatNumber: organization.vatNumber,
+        registrationNumber: organization.registrationNumber,
+        address: {
+          streetAndNumber: organization.streetAndNumber,
+          postalCode: organization.postalCode,
+          city: organization.city,
+          country: organization.country,
+        },
+        // categoryCode: organization.categoryCode,
+        // chamberOfCommerce: organization.chamberOfCommerce,
+      },
+      profile: {
+        name: organization.name,
+        email: organization.email,
+        phone: organization.phone,
+        url: organization.website,
+        businessCategory: organization.businessCategory,
+      },
+    };
+    try {
+      const data = await firstValueFrom(
+        this.httpClient
+          .post(`${this.apiHost}/v2/onboarding/me`, onboardingDto, {
+            headers: {
+              Authorization: `Bearer ${mollieAccessToken}`,
+            },
+          })
+          .pipe(
+            map((response) => response.data),
+            catchError((error: AxiosError) => {
+              console.log('error:: ', error.message);
+              throw 'An error happened!';
+            }),
+          ),
+      );
+      console.log('submitted mollie onboarding data:: ', data);
+      this.usersService.saveMollieProfileId(userId, data.id);
+      return data;
+    } catch (error) {
+      console.log('error:: ', error.message);
+      throw 'Submit Mollie onboarding data error';
     }
   }
 

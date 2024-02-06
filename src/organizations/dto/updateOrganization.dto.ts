@@ -3,6 +3,7 @@ import {
   ArrayMinSize,
   IsArray,
   IsOptional,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 import { UpdateMollieProfileDto } from 'src/mollie/dto/updateMollieProfile.dto';
@@ -15,4 +16,24 @@ export class UpdateOrganizationDto extends UpdateMollieProfileDto {
   @Type(() => CreateUserDto)
   @IsOptional()
   representatives: CreateUserDto[];
+
+  @IsString()
+  public vatNumber: string;
+
+  @IsString()
+  public registrationNumber: string;
+
+  // address
+
+  @IsString()
+  public streetAndNumber: string;
+
+  @IsString()
+  public postalCode: string;
+
+  @IsString()
+  public city: string;
+
+  @IsString()
+  public country: string;
 }
