@@ -379,7 +379,7 @@ export class MollieService {
   }
 
   // *
-  // * Mollie API - list of Payment Methods
+  // * Mollie API - Onboarding Status
   // */
 
   async getOnboardingStatus(

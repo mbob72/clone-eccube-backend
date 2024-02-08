@@ -189,6 +189,21 @@ export class MollieController {
   }
 
   // *
+  // * Mollie API - get onboarding status
+  // *
+  // * https://docs.mollie.com/reference/v2/onboarding-api/get-onboarding-status
+  // */
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('/onboarding-status')
+  async getOnboardingStatus(
+    @UserId() userId: string,
+  ): Promise<IMollieOnboardingStatusResponse> {
+    return this.mollieService.getOnboardingStatus(userId);
+  }
+
+  // *
   // * Mollie API - enable Payment Methods
   // *
   // * https://docs.mollie.com/reference/v2/profiles-api/enable-method
@@ -218,20 +233,5 @@ export class MollieController {
     @Query('include') include: MollieMethodQuery,
   ): Promise<IMollieListPaymentMethodsResponse> {
     return this.mollieService.listPaymentMethods(userId, include);
-  }
-
-  // *
-  // * Mollie API - get onboarding status
-  // *
-  // * https://docs.mollie.com/reference/v2/onboarding-api/get-onboarding-status
-  // */
-
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  @Get('/onboarding-status')
-  async getOnboardingStatus(
-    @UserId() userId: string,
-  ): Promise<IMollieOnboardingStatusResponse> {
-    return this.mollieService.getOnboardingStatus(userId);
   }
 }
