@@ -76,6 +76,8 @@ export class MollieController {
         'organizations.write',
         'profiles.read',
         'profiles.write',
+        'onboarding.read',
+        'onboarding.write',
         'customers.read',
         'customers.write',
         'invoices.read',
@@ -169,6 +171,21 @@ export class MollieController {
   @Get('/delete/profile')
   async deleteProfiles(@UserId() userId: string) {
     return this.mollieService.deleteMollieProfile(userId);
+  }
+
+  // *
+  // * Mollie API - submit onboarding data
+  // *
+  // * https://docs.mollie.com/reference/v2/onboarding-api/submit-onboarding-data
+  // *
+  // * TODO: should be update next time to https://docs.mollie.com/reference/v2/client-links-api/create-client-link
+  // */
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('/onboarding/me')
+  async submitOnboardingData(@UserId() userId: string): Promise<any> {
+    return this.mollieService.submitOnboardingData(userId);
   }
 
   // *

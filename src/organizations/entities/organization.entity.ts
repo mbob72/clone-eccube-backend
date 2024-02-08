@@ -68,11 +68,25 @@ export class Organization {
   })
   representatives: User[];
 
-  // @Column({ default: null, nullable: true })
-  // public vatNumber: string;
+  @Column({ default: null, nullable: true })
+  public vatNumber: string;
+
+  @Column({ default: null, nullable: true })
+  public registrationNumber: string;
+
+  // address
 
   @Column({ default: '' })
-  public address: string;
+  public streetAndNumber: string;
+
+  @Column({ default: '' })
+  public postalCode: string;
+
+  @Column({ default: '' })
+  public city: string;
+
+  @Column({ default: '' })
+  public country: string;
 
   /*
    * auto-set properties
