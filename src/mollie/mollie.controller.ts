@@ -182,10 +182,10 @@ export class MollieController {
   // */
 
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Post('/onboarding/me')
-  async submitOnboardingData(@UserId() userId: string): Promise<any> {
-    return this.mollieService.submitOnboardingData(userId);
+  async submitOnboardingData(@UserId() userId: string): Promise<void> {
+    await this.mollieService.submitOnboardingData(userId);
   }
 
   // *

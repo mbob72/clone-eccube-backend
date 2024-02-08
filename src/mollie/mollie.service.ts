@@ -233,7 +233,7 @@ export class MollieService {
   // * Mollie API - submit onboarding data
   // */
   // TODO: types
-  async submitOnboardingData(userId: string): Promise<any> {
+  async submitOnboardingData(userId: string): Promise<boolean> {
     const user = await this.usersService.findByIdWithOrganization(userId);
     if (!user) {
       throw new Error('User not found');
@@ -269,7 +269,7 @@ export class MollieService {
       },
     };
     try {
-      const data = await firstValueFrom(
+      await firstValueFrom(
         this.httpClient
           .post(`${this.apiHost}/v2/onboarding/me`, onboardingDto, {
             headers: {
@@ -284,9 +284,8 @@ export class MollieService {
             }),
           ),
       );
-      console.log('submitted mollie onboarding data:: ', data);
-      this.usersService.saveMollieProfileId(userId, data.id);
-      return data;
+      console.log('Successfully submitted onboarding data:: ', onboardingDto);
+      return true;
     } catch (error) {
       console.log('error:: ', error.message);
       throw 'Submit Mollie onboarding data error';
