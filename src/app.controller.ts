@@ -6,6 +6,6 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
   @Get('/')
   async get() {
-    return 'Hello health check';
+    return 'Hello health check second deploy';
   }
 }
